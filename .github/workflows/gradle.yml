@@ -36,7 +36,7 @@ jobs:
         ./gradlew clean build -x test
 
     - name: Check built JAR file
-      run: ls -lh ./sst-backend/build/libs/*.jar
+      run: ls -lh ./build/libs/*.jar
 
     # JAR 파일명을 통일 (app.jar)
     - name: Rename JAR
