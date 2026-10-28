@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.pet.mapper.PointMapper">
+
+    <select id="selectHldPnt" resultType="java.lang.Integer">
+        /* 보유 포인트 조회 */
+        SELECT HLD_PNT
+          FROM MBR
+         WHERE MBR_SN = #{mbrSn}
+    </select>
+
+    <update id="updateHldPnt">
+        /* 보유 포인트 증감(잔액이 음수가 되면 0행) */
+        UPDATE MBR
+           SET HLD_PNT = HLD_PNT + #{delta}
+             , MDFR_ID = #{actorId}
+             , MDFCN_DT = NOW()
+         WHERE MBR_SN = #{mbrSn}
+           AND HLD_PNT + #{delta} >= 0
+    </update>
+
+    <select id="existsLedger" resultType="boolean">
+        /* 멱등 요청 ID 원장 존재 여부 */
+        SELECT EXISTS (
+               SELECT 1
+                 FROM PNT_GNLGR
+                WHERE IDMPT_DMND_ID = #{idmptDmndId}
+               )
+    </select>
+
+    <insert id="insertLedger" parameterType="com.nyangmeong.pet.domain.PointLedger"
+            useGeneratedKeys="true" keyProperty="pntGnlgrSn" keyColumn="PNT_GNLGR_SN">
+        /* 포인트 원장 등록 */
+        INSERT INTO PNT_GNLGR
+             ( MBR_SN
+             , DAY_MSN_SN
+             , HLD_ITEM_SN
+             , PNT_DLNG_TYPE_CD
+             , DLNG_PNT
+             , DLNG_AFTR_BLNC_PNT
+             , MEMO_CN
+             , IDMPT_DMND_ID
+             , REG_DT
+             )
+        VALUES
+             ( #{mbrSn}
+             , #{dayMsnSn}
+             , #{hldItemSn}
+             , #{pntDlngTypeCd}
+             , #{dlngPnt}
+             , #{dlngAftrBlncPnt}
+             , #{memoCn}
+             , #{idmptDmndId}
+             , NOW()
+             )
+    </insert>
+
+    <resultMap id="pointLedgerSummaryResultMap" type="com.nyangmeong.pet.dto.PointLedgerSummary">
+        <id     column="PNT_GNLGR_SN"         property="pntGnlgrSn" />
+        <result column="PNT_DLNG_TYPE_CD"     property="pntDlngTypeCd" />
+        <result column="PNT_DLNG_TYPE_CD_NM"  property="pntDlngTypeCdNm" />
+        <result column="DLNG_PNT"             property="dlngPnt" />
+        <result column="MEMO_CN"              property="memoCn" />
+        <result column="REG_DT"               property="regDt" />
+    </resultMap>
+
+    <select id="selectLedgerList" resultMap="pointLedgerSummaryResultMap">
+        /* 기간 포인트 내역 조회(최신순) */
+        SELECT G.PNT_GNLGR_SN
+             , G.PNT_DLNG_TYPE_CD
+             , C.COM_CD_NM AS PNT_DLNG_TYPE_CD_NM
+             , G.DLNG_PNT
+             , G.MEMO_CN
+             , G.REG_DT
+          FROM PNT_GNLGR G
+          JOIN COM_CD C
+            ON C.COM_CD = G.PNT_DLNG_TYPE_CD
+         WHERE G.MBR_SN = #{mbrSn}
+           AND G.REG_DT &gt;= #{fromDt}
+           AND G.REG_DT &lt; #{toDt}
+         ORDER BY G.REG_DT DESC
+                , G.PNT_GNLGR_SN DESC
+    </select>
+
+    <resultMap id="pointMonthSummaryResultMap" type="com.nyangmeong.pet.dto.PointMonthSummary">
+        <result column="EARN_PNT" property="earnPnt" />
+        <result column="EARN_CNT" property="earnCnt" />
+        <result column="USE_PNT"  property="usePnt" />
+        <result column="USE_CNT"  property="useCnt" />
+    </resultMap>
+
+    <select id="selectMonthSummary" resultMap="pointMonthSummaryResultMap">
+        /* 기간 적립·사용 합계 조회 */
+        SELECT COALESCE(SUM(CASE WHEN DLNG_PNT &gt; 0 THEN DLNG_PNT END), 0) AS EARN_PNT
+             , COUNT(CASE WHEN DLNG_PNT &gt; 0 THEN 1 END)                  AS EARN_CNT
+             , COALESCE(SUM(CASE WHEN DLNG_PNT &lt; 0 THEN DLNG_PNT END), 0) AS USE_PNT
+             , COUNT(CASE WHEN DLNG_PNT &lt; 0 THEN 1 END)                  AS USE_CNT
+          FROM PNT_GNLGR
+         WHERE MBR_SN = #{mbrSn}
+           AND REG_DT &gt;= #{fromDt}
+           AND REG_DT &lt; #{toDt}
+    </select>
+
+    <select id="selectPrimaryMbrSn" resultType="java.lang.Long">
+        /* 반려동물의 주양육자 조회 */
+        SELECT R.MBR_SN
+          FROM BRUP_REL R
+          JOIN PET P
+            ON P.PET_SN = R.PET_SN
+           AND P.DEL_YN = 'N'
+         WHERE R.PET_SN = #{petSn}
+           AND R.BRUP_ROLE_CD = #{primaryRoleCd}
+           AND R.USE_YN = 'Y'
+    </select>
+</mapper>

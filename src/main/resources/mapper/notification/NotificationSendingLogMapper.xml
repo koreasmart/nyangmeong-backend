@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.notification.mapper.NotificationSendingLogMapper">
+
+    <insert id="insert" parameterType="com.nyangmeong.notification.domain.NotificationSendingLog"
+            useGeneratedKeys="true" keyProperty="notiSndngLogSn" keyColumn="NOTI_SNDNG_LOG_SN">
+        /* 알림 발송 이력 등록 */
+        INSERT INTO NOTI_SNDNG_LOG
+             ( MBR_SN
+             , SCHDL_SN
+             , NOTI_TYPE_CD
+             , NOTI_CHNL_CD
+             , SNDNG_RSLT_CD
+             , BFHD_NOTI_CD
+             , RTRY_NMTM
+             , SCHDL_YMD
+             , SNDNG_DT
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID )
+        VALUES
+             ( #{mbrSn}
+             , #{schdlSn}
+             , #{notiTypeCd}
+             , #{notiChnlCd}
+             , #{sndngRsltCd}
+             , #{bfhdNotiCd}
+             , #{rtryNmtm}
+             , #{schdlYmd}
+             , NOW()
+             , NOW()
+             , NOW()
+             , #{rgtrId}
+             , #{mdfrId} )
+    </insert>
+
+    <update id="updateResult">
+        /* 알림 발송 결과 수정 */
+        UPDATE NOTI_SNDNG_LOG
+           SET SNDNG_RSLT_CD = #{sndngRsltCd}
+             , RTRY_NMTM = #{rtryNmtm}
+             , FAIL_RSN = #{failRsn}
+             , SNDNG_DT = NOW()
+             , MDFR_ID = #{actorId}
+             , MDFCN_DT = NOW()
+         WHERE NOTI_SNDNG_LOG_SN = #{notiSndngLogSn}
+    </update>
+</mapper>

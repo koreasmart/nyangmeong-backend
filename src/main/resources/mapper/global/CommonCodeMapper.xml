@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.global.code.CommonCodeMapper">
+
+    <resultMap id="commonCodeSummaryResultMap" type="com.nyangmeong.global.code.CommonCodeSummary">
+        <id     column="COM_CD_SN" property="comCdSn" />
+        <result column="COM_CD"    property="comCd" />
+        <result column="COM_CD_NM" property="comCdNm" />
+        <result column="SORT_SEQ"  property="sortSeq" />
+    </resultMap>
+
+    <select id="existsGroup" parameterType="string" resultType="boolean">
+        /* 공통코드 그룹 존재 여부 */
+        SELECT EXISTS (
+               SELECT 1
+                 FROM COM_CD
+                WHERE COM_CD = #{prntComCd}
+                  AND COM_CD_PRNT_SN IS NULL
+                  AND USE_YN = 'Y'
+               )
+    </select>
+
+    <select id="selectChildren" parameterType="string" resultMap="commonCodeSummaryResultMap">
+        /* 공통코드 그룹의 하위 코드 목록 조회(정렬 순서) */
+        SELECT C.COM_CD_SN
+             , C.COM_CD
+             , C.COM_CD_NM
+             , C.SORT_SEQ
+          FROM COM_CD C
+          JOIN COM_CD G
+            ON G.COM_CD_SN = C.COM_CD_PRNT_SN
+         WHERE G.COM_CD = #{prntComCd}
+           AND G.COM_CD_PRNT_SN IS NULL
+           AND C.USE_YN = 'Y'
+         ORDER BY C.SORT_SEQ
+                , C.COM_CD_SN
+    </select>
+</mapper>

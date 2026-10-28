@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.global.file.AtchFileMapper">
+
+    <resultMap id="atchFileResultMap" type="com.nyangmeong.global.file.AtchFile">
+        <id     column="ATCH_FILE_SN"   property="atchFileSn" />
+        <result column="FILE_EXTN_CD"   property="fileExtnCd" />
+        <result column="ORGNL_FILE_NM"  property="orgnlFileNm" />
+        <result column="PHYS_STRG_PATH" property="physStrgPath" />
+        <result column="FILE_SZ"        property="fileSz" />
+        <result column="USE_YN"         property="useYn" />
+        <result column="REG_DT"         property="regDt" />
+        <result column="MDFCN_DT"       property="mdfcnDt" />
+        <result column="RGTR_ID"        property="rgtrId" />
+        <result column="MDFR_ID"        property="mdfrId" />
+    </resultMap>
+
+    <insert id="insert" parameterType="com.nyangmeong.global.file.AtchFile"
+            useGeneratedKeys="true" keyProperty="atchFileSn" keyColumn="ATCH_FILE_SN">
+        /* 첨부파일 등록 */
+        INSERT INTO ATCH_FILE
+             ( FILE_EXTN_CD
+             , ORGNL_FILE_NM
+             , PHYS_STRG_PATH
+             , FILE_SZ
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID )
+        VALUES
+             ( #{fileExtnCd}
+             , #{orgnlFileNm}
+             , #{physStrgPath}
+             , #{fileSz}
+             , NOW()
+             , NOW()
+             , #{rgtrId}
+             , #{rgtrId} )
+    </insert>
+
+    <select id="selectInUse" parameterType="long" resultMap="atchFileResultMap">
+        /* 사용 중인 첨부파일 단건 조회 */
+        SELECT ATCH_FILE_SN
+             , FILE_EXTN_CD
+             , ORGNL_FILE_NM
+             , PHYS_STRG_PATH
+             , FILE_SZ
+             , USE_YN
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID
+          FROM ATCH_FILE
+         WHERE ATCH_FILE_SN = #{atchFileSn}
+           AND USE_YN = 'Y'
+    </select>
+</mapper>

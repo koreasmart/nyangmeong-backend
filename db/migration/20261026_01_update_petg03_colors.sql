@@ -1,0 +1,24 @@
+-- =====================================================================
+-- 냥멍케어 MySQL 공통코드 변경  |  v0.9 위에 실행 (20261025_01 다음)
+-- PETG03 털색을 마이페이지 기능명세서 FN-MYP-003-03 목록에 맞춘다
+--   (1) PETC0010 검정&황갈색 → 블랙탄 (코드값은 그대로라 기존 PET.COLR_CD는 영향 없음)
+--   (2) 강아지 전용 황색·파티·세이블·멀, 고양이 전용 젖소·카오스·포인트 추가 (PETC0028~PETC0034)
+--   (3) 직접 입력(PETC0017)이 맨 뒤에 오도록 SORT_SEQ를 130 → 200
+-- 얼룩(PETC0011)은 파티(흰색이 절반 이상)와 다른 색이라 그대로 둔다
+-- 종별 선택지 구분은 COM_CD_EXPLN의 "강아지 전용"·"고양이 전용"을 따르고, 표시 순서는 프론트가 정한다
+-- 되돌리기:
+--   DELETE FROM `COM_CD` WHERE `COM_CD` BETWEEN 'PETC0028' AND 'PETC0034';
+--   UPDATE `COM_CD` SET `COM_CD_NM`='검정&황갈색' WHERE `COM_CD`='PETC0010';
+--   UPDATE `COM_CD` SET `SORT_SEQ`=130 WHERE `COM_CD`='PETC0017';
+-- =====================================================================
+
+UPDATE `COM_CD` SET `COM_CD_NM`='블랙탄' WHERE `COM_CD`='PETC0010';
+UPDATE `COM_CD` SET `SORT_SEQ`=200 WHERE `COM_CD`='PETC0017';
+
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0028','황색','강아지 전용',130);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0029','파티','강아지 전용',140);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0030','세이블','강아지 전용',150);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0031','멀','강아지 전용',160);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0032','젖소','고양이 전용',170);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0033','카오스','고양이 전용',180);
+INSERT INTO `COM_CD` (`COM_CD_PRNT_SN`,`COM_CD`,`COM_CD_NM`,`COM_CD_EXPLN`,`SORT_SEQ`) VALUES ((SELECT p.`COM_CD_SN` FROM (SELECT `COM_CD_SN` FROM `COM_CD` WHERE `COM_CD`='PETG03') p),'PETC0034','포인트','고양이 전용',190);

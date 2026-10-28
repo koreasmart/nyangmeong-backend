@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.pet.mapper.PetMapper">
+
+    <resultMap id="petSummaryResultMap" type="com.nyangmeong.pet.dto.PetSummary">
+        <id     column="PET_SN"            property="petSn" />
+        <result column="PET_NM"            property="petNm" />
+        <result column="PET_SE_CD"         property="petSeCd" />
+        <result column="VRTY_SN"           property="vrtySn" />
+        <result column="VRTY_NM"           property="vrtyNm" />
+        <result column="VRTY_DRCT_INPT_NM" property="vrtyDrctInptNm" />
+        <result column="PET_GNDR_CD"       property="petGndrCd" />
+        <result column="PET_BRDT"          property="petBrdt" />
+        <result column="PET_BDWG"          property="petBdwg" />
+        <result column="COLR_CD"           property="colrCd" />
+        <result column="COLR_DRCT_INPT_NM" property="colrDrctInptNm" />
+        <result column="CHIP_NO"           property="chipNo" />
+        <result column="CHRC_CN"           property="chrcCn" />
+        <result column="ALGY_CN"           property="algyCn" />
+        <result column="DSS_CN"            property="dssCn" />
+        <result column="BRUP_ROLE_CD"      property="brupRoleCd" />
+        <result column="RPRS_PET_YN"       property="rprsPetYn" />
+        <result column="CAREGIVER_COUNT"   property="caregiverCount" />
+        <result column="BSC_CHAR_SBST_YN"  property="bscCharSbstYn" />
+    </resultMap>
+
+    <select id="selectList" resultMap="petSummaryResultMap">
+        /* 반려동물 목록 조회 */
+        SELECT P.PET_SN
+             , P.PET_NM
+             , P.PET_SE_CD
+             , P.VRTY_SN
+             , V.VRTY_NM
+             , P.VRTY_DRCT_INPT_NM
+             , P.PET_GNDR_CD
+             , P.PET_BRDT
+             , P.PET_BDWG
+             , P.COLR_CD
+             , P.COLR_DRCT_INPT_NM
+             , P.CHIP_NO
+             , P.CHRC_CN
+             , P.ALGY_CN
+             , P.DSS_CN
+             , R.BRUP_ROLE_CD
+             , CASE WHEN R.RPRS_PET_YN = 'Y' THEN TRUE ELSE FALSE END AS RPRS_PET_YN
+             , (SELECT COUNT(*)
+                  FROM BRUP_REL CR
+                 WHERE CR.PET_SN = P.PET_SN
+                   AND CR.USE_YN = 'Y'
+                   AND CR.BRUP_ROLE_CD = #{coParentRoleCd}) AS CAREGIVER_COUNT
+             , CASE WHEN C.BSC_CHAR_SBST_YN = 'Y' THEN TRUE ELSE FALSE END AS BSC_CHAR_SBST_YN
+          FROM BRUP_REL R
+          JOIN PET P
+            ON P.PET_SN = R.PET_SN
+           AND P.DEL_YN = 'N'
+          LEFT JOIN VRTY V
+            ON V.VRTY_SN = P.VRTY_SN
+          LEFT JOIN PIXEL_CHAR C
+            ON C.PET_SN = P.PET_SN
+           AND C.DEL_YN = 'N'
+         WHERE R.MBR_SN = #{mbrSn}
+           AND R.USE_YN = 'Y'
+         ORDER BY R.REG_DT
+                , R.BRUP_REL_SN
+    </select>
+    <resultMap id="petResultMap" type="com.nyangmeong.pet.domain.Pet">
+        <id     column="PET_SN"            property="petSn" />
+        <result column="VRTY_SN"           property="vrtySn" />
+        <result column="PET_SE_CD"         property="petSeCd" />
+        <result column="PET_GNDR_CD"       property="petGndrCd" />
+        <result column="COLR_CD"           property="colrCd" />
+        <result column="PET_NM"            property="petNm" />
+        <result column="VRTY_DRCT_INPT_NM" property="vrtyDrctInptNm" />
+        <result column="COLR_DRCT_INPT_NM" property="colrDrctInptNm" />
+        <result column="CHIP_NO"           property="chipNo" />
+        <result column="CHRC_CN"           property="chrcCn" />
+        <result column="ALGY_CN"           property="algyCn" />
+        <result column="DSS_CN"            property="dssCn" />
+        <result column="PET_BRDT"          property="petBrdt" />
+        <result column="PET_BDWG"          property="petBdwg" />
+        <result column="GOAL_BDWG"         property="goalBdwg" />
+        <result column="MIN_BDWG"          property="minBdwg" />
+        <result column="MAX_BDWG"          property="maxBdwg" />
+        <result column="MIN_MEAL_QTY"      property="minMealQty" />
+        <result column="MAX_MEAL_QTY"      property="maxMealQty" />
+        <result column="MIN_WATR_QTY"      property="minWatrQty" />
+        <result column="MAX_WATR_QTY"      property="maxWatrQty" />
+        <result column="NUTR_YN"           property="nutrYn" />
+        <result column="DEL_YN"            property="delYn" />
+        <result column="REG_DT"            property="regDt" />
+        <result column="MDFCN_DT"          property="mdfcnDt" />
+        <result column="RGTR_ID"           property="rgtrId" />
+        <result column="MDFR_ID"           property="mdfrId" />
+    </resultMap>
+
+    <resultMap id="brupRelResultMap" type="com.nyangmeong.pet.domain.BrupRel">
+        <id     column="BRUP_REL_SN"  property="brupRelSn" />
+        <result column="PET_SN"       property="petSn" />
+        <result column="MBR_SN"       property="mbrSn" />
+        <result column="BRUP_ROLE_CD" property="brupRoleCd" />
+        <result column="RPRS_PET_YN"  property="rprsPetYn" />
+        <result column="USE_YN"       property="useYn" />
+        <result column="REG_DT"       property="regDt" />
+        <result column="MDFCN_DT"     property="mdfcnDt" />
+        <result column="MDFR_ID"      property="mdfrId" />
+    </resultMap>
+
+    <resultMap id="caregiverSummaryResultMap" type="com.nyangmeong.pet.dto.CaregiverSummary">
+        <id     column="BRUP_REL_SN"  property="brupRelSn" />
+        <result column="MBR_SN"       property="mbrSn" />
+        <result column="MBR_NCNM"     property="mbrNcnm" />
+        <result column="BRUP_ROLE_CD" property="brupRoleCd" />
+    </resultMap>
+
+    <select id="selectPet" parameterType="long" resultMap="petResultMap">
+        /* 반려동물 단건 조회 */
+        SELECT PET_SN
+             , VRTY_SN
+             , PET_SE_CD
+             , PET_GNDR_CD
+             , COLR_CD
+             , PET_NM
+             , VRTY_DRCT_INPT_NM
+             , COLR_DRCT_INPT_NM
+             , CHIP_NO
+             , CHRC_CN
+             , ALGY_CN
+             , DSS_CN
+             , PET_BRDT
+             , PET_BDWG
+             , GOAL_BDWG
+             , MIN_BDWG
+             , MAX_BDWG
+             , MIN_MEAL_QTY
+             , MAX_MEAL_QTY
+             , MIN_WATR_QTY
+             , MAX_WATR_QTY
+             , NUTR_YN
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID
+          FROM PET
+         WHERE PET_SN = #{petSn}
+           AND DEL_YN = 'N'
+    </select>
+
+    <select id="selectVrtyNm" parameterType="long" resultType="string">
+        /* 품종명 조회 */
+        SELECT VRTY_NM
+          FROM VRTY
+         WHERE VRTY_SN = #{vrtySn}
+    </select>
+
+    <select id="existsVrty" resultType="boolean">
+        /* 사용 중인 품종 존재 여부(반려동물 종 일치) */
+        SELECT EXISTS (
+               SELECT 1
+                 FROM VRTY
+                WHERE VRTY_SN = #{vrtySn}
+                  AND PET_SE_CD = #{petSeCd}
+                  AND USE_YN = 'Y'
+               )
+    </select>
+
+    <select id="selectBrupRel" resultMap="brupRelResultMap">
+        /* 사용 중인 양육 관계 조회 */
+        SELECT BRUP_REL_SN
+             , PET_SN
+             , MBR_SN
+             , BRUP_ROLE_CD
+             , RPRS_PET_YN
+             , USE_YN
+             , REG_DT
+             , MDFCN_DT
+             , MDFR_ID
+          FROM BRUP_REL
+         WHERE MBR_SN = #{mbrSn}
+           AND PET_SN = #{petSn}
+           AND USE_YN = 'Y'
+    </select>
+
+    <select id="selectCaregivers" parameterType="long" resultMap="caregiverSummaryResultMap">
+        /* 반려동물 양육자 목록 조회 */
+        SELECT R.BRUP_REL_SN
+             , R.MBR_SN
+             , M.MBR_NCNM
+             , R.BRUP_ROLE_CD
+          FROM BRUP_REL R
+          JOIN MBR M
+            ON M.MBR_SN = R.MBR_SN
+         WHERE R.PET_SN = #{petSn}
+           AND R.USE_YN = 'Y'
+         ORDER BY R.BRUP_ROLE_CD
+                , R.REG_DT
+                , R.BRUP_REL_SN
+    </select>
+
+    <select id="countPrimaryPets" resultType="int">
+        /* 주양육 반려동물 수 조회 */
+        SELECT COUNT(*)
+          FROM BRUP_REL R
+          JOIN PET P
+            ON P.PET_SN = R.PET_SN
+           AND P.DEL_YN = 'N'
+         WHERE R.MBR_SN = #{mbrSn}
+           AND R.BRUP_ROLE_CD = #{primaryRoleCd}
+           AND R.USE_YN = 'Y'
+    </select>
+
+    <insert id="insertPet" parameterType="com.nyangmeong.pet.domain.Pet"
+            useGeneratedKeys="true" keyProperty="petSn" keyColumn="PET_SN">
+        /* 반려동물 등록 */
+        INSERT INTO PET
+             ( VRTY_SN
+             , PET_SE_CD
+             , PET_GNDR_CD
+             , COLR_CD
+             , PET_NM
+             , VRTY_DRCT_INPT_NM
+             , COLR_DRCT_INPT_NM
+             , CHIP_NO
+             , CHRC_CN
+             , ALGY_CN
+             , DSS_CN
+             , PET_BRDT
+             , PET_BDWG
+             , GOAL_BDWG
+             , MIN_BDWG
+             , MAX_BDWG
+             , NUTR_YN
+             , RGTR_ID
+             , MDFR_ID
+             )
+        VALUES
+             ( #{vrtySn}
+             , #{petSeCd}
+             , #{petGndrCd}
+             , #{colrCd}
+             , #{petNm}
+             , #{vrtyDrctInptNm}
+             , #{colrDrctInptNm}
+             , #{chipNo}
+             , #{chrcCn}
+             , #{algyCn}
+             , #{dssCn}
+             , #{petBrdt}
+             , #{petBdwg}
+             , #{goalBdwg}
+             , #{minBdwg}
+             , #{maxBdwg}
+             , #{nutrYn}
+             , #{rgtrId}
+             , #{mdfrId}
+             )
+    </insert>
+
+    <insert id="insertBrupRel" parameterType="com.nyangmeong.pet.domain.BrupRel"
+            useGeneratedKeys="true" keyProperty="brupRelSn" keyColumn="BRUP_REL_SN">
+        /* 양육 관계 등록 */
+        INSERT INTO BRUP_REL
+             ( PET_SN
+             , MBR_SN
+             , BRUP_ROLE_CD
+             , RPRS_PET_YN
+             , MDFR_ID
+             )
+        VALUES
+             ( #{petSn}
+             , #{mbrSn}
+             , #{brupRoleCd}
+             , #{rprsPetYn}
+             , #{mdfrId}
+             )
+    </insert>
+
+    <update id="updatePet">
+        /* 반려동물 수정 */
+        UPDATE PET
+           SET VRTY_SN           = #{pet.vrtySn}
+             , PET_SE_CD         = #{pet.petSeCd}
+             , PET_GNDR_CD       = #{pet.petGndrCd}
+             , COLR_CD           = #{pet.colrCd}
+             , PET_NM            = #{pet.petNm}
+             , VRTY_DRCT_INPT_NM = #{pet.vrtyDrctInptNm}
+             , COLR_DRCT_INPT_NM = #{pet.colrDrctInptNm}
+             , CHIP_NO           = #{pet.chipNo}
+             , CHRC_CN           = #{pet.chrcCn}
+             , ALGY_CN           = #{pet.algyCn}
+             , DSS_CN            = #{pet.dssCn}
+             , PET_BRDT          = #{pet.petBrdt}
+             , PET_BDWG          = #{pet.petBdwg}
+             , GOAL_BDWG         = #{pet.goalBdwg}
+             , MIN_BDWG          = #{pet.minBdwg}
+             , MAX_BDWG          = #{pet.maxBdwg}
+             , NUTR_YN           = #{pet.nutrYn}
+             , MDFR_ID           = #{actorId}
+             , MDFCN_DT          = NOW()
+         WHERE PET_SN = #{pet.petSn}
+           AND DEL_YN = 'N'
+    </update>
+
+    <update id="updateRepresentativeOff">
+        /* 대표 반려동물 해제 */
+        UPDATE BRUP_REL
+           SET RPRS_PET_YN = 'N'
+             , MDFR_ID     = #{actorId}
+             , MDFCN_DT    = NOW()
+         WHERE MBR_SN = #{mbrSn}
+           AND RPRS_PET_YN = 'Y'
+    </update>
+
+    <update id="updateRepresentativeOn">
+        /* 대표 반려동물 지정 */
+        UPDATE BRUP_REL
+           SET RPRS_PET_YN = 'Y'
+             , MDFR_ID     = #{actorId}
+             , MDFCN_DT    = NOW()
+         WHERE MBR_SN = #{mbrSn}
+           AND PET_SN = #{petSn}
+           AND USE_YN = 'Y'
+    </update>
+</mapper>

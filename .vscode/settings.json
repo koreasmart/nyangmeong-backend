@@ -1,0 +1,15 @@
+{
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "java.format.settings.url": "eclipse-formatter.xml",
+  "java.format.settings.profile": "nyangmeong",
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+  "[xml]": {
+    "editor.formatOnSave": false
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
+}

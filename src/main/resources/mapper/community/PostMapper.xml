@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.community.mapper.PostMapper">
+
+    <resultMap id="postResultMap" type="com.nyangmeong.community.domain.Post">
+        <id     column="PST_SN"              property="pstSn" />
+        <result column="MBR_SN"              property="mbrSn" />
+        <result column="BBS_CD"              property="bbsCd" />
+        <result column="PST_STTS_CD"         property="pstSttsCd" />
+        <result column="PST_TTL"             property="pstTtl" />
+        <result column="PST_CN"              property="pstCn" />
+        <result column="INQ_CNT"             property="inqCnt" />
+        <result column="RCMDTN_CNT"          property="rcmdtnCnt" />
+        <result column="REG_DT"              property="regDt" />
+        <result column="MDFCN_DT"            property="mdfcnDt" />
+        <result column="MDFR_ID"             property="mdfrId" />
+        <result column="HLTH_INFO_EXPSR_SEQ" property="hlthInfoExpsrSeq" />
+    </resultMap>
+
+    <resultMap id="postSummaryResultMap" type="com.nyangmeong.community.dto.PostSummary">
+        <id     column="PST_SN"             property="pstSn" />
+        <result column="BBS_CD"             property="bbsCd" />
+        <result column="PST_TTL"            property="pstTtl" />
+        <result column="PST_CN"             property="pstCn" />
+        <result column="MBR_NCNM"           property="mbrNcnm" />
+        <result column="REG_DT"             property="regDt" />
+        <result column="THUMB_ATCH_FILE_SN" property="thumbAtchFileSn" />
+        <result column="RCMDTN_CNT"         property="rcmdtnCnt" />
+        <result column="CMNT_CNT"           property="cmntCnt" />
+        <result column="POPULAR"            property="popular" />
+    </resultMap>
+
+    <resultMap id="postImageResultMap" type="com.nyangmeong.community.domain.PostImage">
+        <id     column="PST_IMG_SN"   property="pstImgSn" />
+        <result column="PST_SN"       property="pstSn" />
+        <result column="ATCH_FILE_SN" property="atchFileSn" />
+        <result column="SORT_SEQ"     property="sortSeq" />
+        <result column="DEL_YN"       property="delYn" />
+        <result column="REG_DT"       property="regDt" />
+        <result column="MDFCN_DT"     property="mdfcnDt" />
+        <result column="RGTR_ID"      property="rgtrId" />
+        <result column="MDFR_ID"      property="mdfrId" />
+    </resultMap>
+
+    <sql id="postColumns">
+          P.PST_SN
+        , P.MBR_SN
+        , P.BBS_CD
+        , P.PST_STTS_CD
+        , P.PST_TTL
+        , P.PST_CN
+        , P.INQ_CNT
+        , P.RCMDTN_CNT
+        , P.REG_DT
+        , P.MDFCN_DT
+        , P.MDFR_ID
+        , P.HLTH_INFO_EXPSR_SEQ
+    </sql>
+
+    <!-- 인기글 배지 : 최근 7일 정상 글 중 좋아요 상위 5개 -->
+    <sql id="summaryColumns">
+          P.PST_SN
+        , P.BBS_CD
+        , P.PST_TTL
+        , P.PST_CN
+        , M.MBR_NCNM
+        , P.REG_DT
+        , (SELECT I.ATCH_FILE_SN
+             FROM PST_IMG I
+            WHERE I.PST_SN = P.PST_SN
+              AND I.DEL_YN = 'N'
+            ORDER BY I.SORT_SEQ, I.PST_IMG_SN
+            LIMIT 1) AS THUMB_ATCH_FILE_SN
+        , P.RCMDTN_CNT
+        , (SELECT COUNT(*)
+             FROM CMNT C
+            WHERE C.PST_SN = P.PST_SN
+              AND C.DEL_YN = 'N') AS CMNT_CNT
+        , CASE WHEN P.PST_SN IN (SELECT B.PST_SN
+                                   FROM (SELECT PST_SN
+                                           FROM PST
+                                          WHERE PST_STTS_CD = #{pstSttsCd}
+                                            AND RCMDTN_CNT > 0
+                                            AND REG_DT >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                                          ORDER BY RCMDTN_CNT DESC, REG_DT DESC, PST_SN DESC
+                                          LIMIT 5) B)
+               THEN 1 ELSE 0 END AS POPULAR
+    </sql>
+
+    <select id="selectList" resultMap="postSummaryResultMap">
+        SELECT <include refid="summaryColumns" />
+          FROM PST P
+          JOIN MBR M
+            ON M.MBR_SN = P.MBR_SN
+         WHERE P.PST_STTS_CD = #{pstSttsCd}
+        <if test="bbsCd != null">
+           AND P.BBS_CD = #{bbsCd}
+        </if>
+        <if test="keyword != null">
+           AND (P.PST_TTL LIKE CONCAT('%', #{keyword}, '%')
+                OR P.PST_CN LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+         ORDER BY
+        <if test="keyword != null">
+                  CASE WHEN P.PST_TTL LIKE CONCAT('%', #{keyword}, '%') THEN 0 ELSE 1 END,
+        </if>
+        <choose>
+            <when test="popularSort">
+                  P.RCMDTN_CNT DESC, P.REG_DT DESC, P.PST_SN DESC
+            </when>
+            <otherwise>
+                  P.REG_DT DESC, P.PST_SN DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectHealthTips" resultMap="postSummaryResultMap">
+        SELECT <include refid="summaryColumns" />
+          FROM PST P
+          JOIN MBR M
+            ON M.MBR_SN = P.MBR_SN
+         WHERE P.PST_STTS_CD = #{pstSttsCd}
+           AND P.BBS_CD = #{bbsCd}
+           AND P.HLTH_INFO_EXPSR_SEQ IS NOT NULL
+         ORDER BY P.HLTH_INFO_EXPSR_SEQ, P.PST_SN
+         LIMIT 3
+    </select>
+
+    <select id="selectPopularPhoto" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+          FROM PST P
+         WHERE P.PST_STTS_CD = #{pstSttsCd}
+           AND P.BBS_CD = #{bbsCd}
+           AND EXISTS (SELECT 1
+                         FROM PST_IMG I
+                        WHERE I.PST_SN = P.PST_SN
+                          AND I.DEL_YN = 'N')
+        <if test="days != null">
+           AND P.REG_DT >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        </if>
+         ORDER BY P.RCMDTN_CNT DESC, P.REG_DT DESC, P.PST_SN DESC
+         LIMIT 1
+    </select>
+
+    <select id="selectPost" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+          FROM PST P
+         WHERE P.PST_SN = #{pstSn}
+           AND P.PST_STTS_CD = #{pstSttsCd}
+    </select>
+
+    <select id="selectMbrNcnm" parameterType="long" resultType="string">
+        SELECT MBR_NCNM
+          FROM MBR
+         WHERE MBR_SN = #{mbrSn}
+    </select>
+
+    <select id="countComments" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+          FROM CMNT
+         WHERE PST_SN = #{pstSn}
+           AND DEL_YN = 'N'
+    </select>
+
+    <select id="existsLike" resultType="boolean">
+        SELECT EXISTS (SELECT 1
+                         FROM PST_RCMDTN
+                        WHERE PST_SN = #{pstSn}
+                          AND MBR_SN = #{mbrSn}
+                          AND USE_YN = 'Y')
+    </select>
+
+    <select id="selectRcmdtnCnt" parameterType="long" resultType="int">
+        SELECT RCMDTN_CNT
+          FROM PST
+         WHERE PST_SN = #{pstSn}
+    </select>
+
+    <select id="selectImages" parameterType="long" resultMap="postImageResultMap">
+        SELECT PST_IMG_SN
+             , PST_SN
+             , ATCH_FILE_SN
+             , SORT_SEQ
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID
+          FROM PST_IMG
+         WHERE PST_SN = #{pstSn}
+           AND DEL_YN = 'N'
+         ORDER BY SORT_SEQ
+                , PST_IMG_SN
+    </select>
+
+    <insert id="insertPost" parameterType="com.nyangmeong.community.domain.Post"
+            useGeneratedKeys="true" keyProperty="pstSn" keyColumn="PST_SN">
+        INSERT INTO PST
+             ( MBR_SN
+             , BBS_CD
+             , PST_STTS_CD
+             , PST_TTL
+             , PST_CN
+             , REG_DT
+             , MDFCN_DT
+             , MDFR_ID )
+        VALUES
+             ( #{mbrSn}
+             , #{bbsCd}
+             , #{pstSttsCd}
+             , #{pstTtl}
+             , #{pstCn}
+             , NOW()
+             , NOW()
+             , #{mdfrId} )
+    </insert>
+
+    <insert id="insertStatusHistory" parameterType="com.nyangmeong.community.domain.PostStatusHistory"
+            useGeneratedKeys="true" keyProperty="pstSttsHstrySn" keyColumn="PST_STTS_HSTRY_SN">
+        INSERT INTO PST_STTS_HSTRY
+             ( PST_SN
+             , MBR_SN
+             , BFR_STTS_CD
+             , AFTR_STTS_CD
+             , CHG_RSN
+             , REG_DT )
+        VALUES
+             ( #{pstSn}
+             , #{mbrSn}
+             , #{bfrSttsCd}
+             , #{aftrSttsCd}
+             , #{chgRsn}
+             , NOW() )
+    </insert>
+
+    <insert id="insertImage" parameterType="com.nyangmeong.community.domain.PostImage"
+            useGeneratedKeys="true" keyProperty="pstImgSn" keyColumn="PST_IMG_SN">
+        INSERT INTO PST_IMG
+             ( PST_SN
+             , ATCH_FILE_SN
+             , SORT_SEQ
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID )
+        VALUES
+             ( #{pstSn}
+             , #{atchFileSn}
+             , #{sortSeq}
+             , 'N'
+             , NOW()
+             , NOW()
+             , #{rgtrId}
+             , #{mdfrId} )
+    </insert>
+
+    <update id="updatePost">
+        UPDATE PST
+        <set>
+            <if test="bbsCd != null">BBS_CD = #{bbsCd},</if>
+            <if test="pstTtl != null">PST_TTL = #{pstTtl},</if>
+            <if test="pstCn != null">PST_CN = #{pstCn},</if>
+            MDFR_ID = #{actorId},
+            MDFCN_DT = NOW()
+        </set>
+         WHERE PST_SN = #{pstSn}
+           AND PST_STTS_CD = #{pstSttsCd}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE PST
+           SET PST_STTS_CD = #{afterCd}
+             , MDFR_ID = #{actorId}
+             , MDFCN_DT = NOW()
+         WHERE PST_SN = #{pstSn}
+           AND PST_STTS_CD = #{beforeCd}
+    </update>
+
+    <update id="updateImagesDeleted">
+        UPDATE PST_IMG
+           SET DEL_YN = 'Y'
+             , MDFR_ID = #{actorId}
+             , MDFCN_DT = NOW()
+         WHERE PST_SN = #{pstSn}
+           AND DEL_YN = 'N'
+           AND ATCH_FILE_SN IN
+        <foreach collection="atchFileSns" item="atchFileSn" open="(" separator="," close=")">
+               #{atchFileSn}
+        </foreach>
+    </update>
+
+    <insert id="insertViewIgnore">
+        INSERT IGNORE INTO PST_INQ_HSTRY
+             ( PST_SN
+             , MBR_SN
+             , INQ_YMD
+             , REG_DT )
+        VALUES
+             ( #{pstSn}
+             , #{mbrSn}
+             , CURDATE()
+             , NOW() )
+    </insert>
+
+    <!-- 조회수·좋아요 수 변경은 게시글 수정일시를 바꾸지 않음 -->
+    <update id="updateInqCnt" parameterType="long">
+        UPDATE PST
+           SET INQ_CNT = INQ_CNT + 1
+             , MDFCN_DT = MDFCN_DT
+         WHERE PST_SN = #{pstSn}
+    </update>
+
+    <update id="updateLikeOn">
+        UPDATE PST_RCMDTN
+           SET USE_YN = 'Y'
+             , MDFCN_DT = NOW()
+         WHERE PST_SN = #{pstSn}
+           AND MBR_SN = #{mbrSn}
+           AND USE_YN = 'N'
+    </update>
+
+    <insert id="insertLikeIgnore">
+        INSERT IGNORE INTO PST_RCMDTN
+             ( PST_SN
+             , MBR_SN
+             , USE_YN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{pstSn}
+             , #{mbrSn}
+             , 'Y'
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateLikeOff">
+        UPDATE PST_RCMDTN
+           SET USE_YN = 'N'
+             , MDFCN_DT = NOW()
+         WHERE PST_SN = #{pstSn}
+           AND MBR_SN = #{mbrSn}
+           AND USE_YN = 'Y'
+    </update>
+
+    <update id="updateRcmdtnCnt">
+        UPDATE PST
+           SET RCMDTN_CNT = GREATEST(RCMDTN_CNT + #{delta}, 0)
+             , MDFCN_DT = MDFCN_DT
+         WHERE PST_SN = #{pstSn}
+    </update>
+</mapper>

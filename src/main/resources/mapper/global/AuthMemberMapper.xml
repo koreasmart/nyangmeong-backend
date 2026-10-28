@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.global.security.AuthMemberMapper">
+
+    <resultMap id="authMemberResultMap" type="com.nyangmeong.global.security.domain.AuthMember">
+        <id     column="MBR_SN"        property="mbrSn" />
+        <result column="MBR_STTS_CD"   property="mbrSttsCd" />
+        <result column="MBR_AUTHRT_CD" property="mbrAuthrtCd" />
+        <result column="MBR_NCNM"      property="mbrNcnm" />
+        <result column="ATCH_FILE_SN"  property="atchFileSn" />
+        <result column="ACNT_EML_ENC"  property="acntEmlEnc" />
+    </resultMap>
+
+    <select id="selectForAuth" parameterType="long" resultMap="authMemberResultMap">
+        /* 인증용 회원 조회(회원 상태·권한) */
+        SELECT MBR_SN
+             , MBR_STTS_CD
+             , MBR_AUTHRT_CD
+          FROM MBR
+         WHERE MBR_SN = #{mbrSn}
+    </select>
+
+    <select id="selectForSession" resultMap="authMemberResultMap">
+        /* 세션 유효성 검사용 회원 조회(폐기·만료된 리프레시 토큰 제외) */
+        SELECT M.MBR_SN
+             , M.MBR_STTS_CD
+             , M.MBR_AUTHRT_CD
+          FROM MBR M
+          JOIN RFRSH_TKN T
+            ON T.MBR_SN = M.MBR_SN
+         WHERE M.MBR_SN = #{mbrSn}
+           AND T.RFRSH_TKN_SN = #{rfrshTknSn}
+           AND T.DSCD_DT IS NULL
+           AND T.EXPRY_DT &gt; NOW()
+    </select>
+    <select id="selectForMe" parameterType="long" resultMap="authMemberResultMap">
+        /* 내 정보 조회(닉네임·프로필 파일·이메일) */
+        SELECT MBR_SN
+             , MBR_STTS_CD
+             , MBR_AUTHRT_CD
+             , MBR_NCNM
+             , ATCH_FILE_SN
+             , ACNT_EML_ENC
+          FROM MBR
+         WHERE MBR_SN = #{mbrSn}
+    </select>
+
+</mapper>

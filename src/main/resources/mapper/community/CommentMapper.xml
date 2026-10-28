@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.community.mapper.CommentMapper">
+
+    <resultMap id="commentResultMap" type="com.nyangmeong.community.domain.Comment">
+        <id     column="CMNT_SN"         property="cmntSn" />
+        <result column="PRNT_CMNT_SN"    property="prntCmntSn" />
+        <result column="PST_SN"          property="pstSn" />
+        <result column="MBR_SN"          property="mbrSn" />
+        <result column="CMNT_CN"         property="cmntCn" />
+        <result column="SYS_AUTO_CRT_YN" property="sysAutoCrtYn" />
+        <result column="DEL_YN"          property="delYn" />
+        <result column="REG_DT"          property="regDt" />
+        <result column="MDFCN_DT"        property="mdfcnDt" />
+    </resultMap>
+
+    <resultMap id="commentSummaryResultMap" type="com.nyangmeong.community.dto.CommentSummary">
+        <id     column="CMNT_SN"           property="cmntSn" />
+        <result column="PRNT_CMNT_SN"      property="prntCmntSn" />
+        <result column="DEL_FLAG"          property="delYn" />
+        <result column="CMNT_CN"           property="cmntCn" />
+        <result column="MBR_SN"            property="mbrSn" />
+        <result column="MBR_NCNM"          property="mbrNcnm" />
+        <result column="SYS_AUTO_CRT_FLAG" property="sysAutoCrtYn" />
+        <result column="OWNER_FLAG"        property="owner" />
+        <result column="REG_DT"            property="regDt" />
+    </resultMap>
+
+    <!-- 삭제된 댓글도 읽음 : 대체 문구 표시와 답글 유지용, 내용·작성자는 비움 -->
+    <select id="selectList" resultMap="commentSummaryResultMap">
+        SELECT C.CMNT_SN
+             , C.PRNT_CMNT_SN
+             , CASE WHEN C.DEL_YN = 'Y' THEN 1 ELSE 0 END AS DEL_FLAG
+             , CASE WHEN C.DEL_YN = 'Y' THEN NULL ELSE C.CMNT_CN END AS CMNT_CN
+             , CASE WHEN C.DEL_YN = 'Y' THEN NULL ELSE C.MBR_SN END AS MBR_SN
+             , CASE WHEN C.DEL_YN = 'Y' THEN NULL ELSE M.MBR_NCNM END AS MBR_NCNM
+             , CASE WHEN C.SYS_AUTO_CRT_YN = 'Y' THEN 1 ELSE 0 END AS SYS_AUTO_CRT_FLAG
+             , CASE WHEN C.DEL_YN = 'N' AND C.MBR_SN = #{mbrSn} THEN 1 ELSE 0 END AS OWNER_FLAG
+             , C.REG_DT
+          FROM CMNT C
+          JOIN MBR M
+            ON M.MBR_SN = C.MBR_SN
+         WHERE C.PST_SN = #{pstSn}
+         ORDER BY COALESCE(C.PRNT_CMNT_SN, C.CMNT_SN)
+                , C.PRNT_CMNT_SN IS NOT NULL
+                , C.REG_DT
+                , C.CMNT_SN
+    </select>
+
+    <select id="selectComment" parameterType="long" resultMap="commentResultMap">
+        SELECT CMNT_SN
+             , PRNT_CMNT_SN
+             , PST_SN
+             , MBR_SN
+             , CMNT_CN
+             , SYS_AUTO_CRT_YN
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+          FROM CMNT
+         WHERE CMNT_SN = #{cmntSn}
+           AND DEL_YN = 'N'
+    </select>
+
+    <insert id="insertComment" parameterType="com.nyangmeong.community.domain.Comment"
+            useGeneratedKeys="true" keyProperty="cmntSn" keyColumn="CMNT_SN">
+        INSERT INTO CMNT
+             ( PRNT_CMNT_SN
+             , PST_SN
+             , MBR_SN
+             , CMNT_CN
+             , SYS_AUTO_CRT_YN
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{prntCmntSn}
+             , #{pstSn}
+             , #{mbrSn}
+             , #{cmntCn}
+             , 'N'
+             , 'N'
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateDeleted" parameterType="long">
+        UPDATE CMNT
+           SET DEL_YN = 'Y'
+             , MDFCN_DT = NOW()
+         WHERE CMNT_SN = #{cmntSn}
+           AND DEL_YN = 'N'
+    </update>
+</mapper>

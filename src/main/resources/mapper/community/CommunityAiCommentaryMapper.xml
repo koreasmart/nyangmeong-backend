@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.community.mapper.CommunityAiCommentaryMapper">
+
+    <resultMap id="commentaryResultMap" type="com.nyangmeong.community.domain.CommunityAiCommentary">
+        <id     column="CMNTY_AI_CMTRY_SN" property="cmntyAiCmtrySn" />
+        <result column="CMTRY_SRC_CD"      property="cmtrySrcCd" />
+        <result column="CMTRY_CRTR_YMD"    property="cmtryCrtrYmd" />
+        <result column="CMTRY_CN"          property="cmtryCn" />
+        <result column="USE_YN"            property="useYn" />
+        <result column="REG_DT"            property="regDt" />
+        <result column="MDFCN_DT"          property="mdfcnDt" />
+    </resultMap>
+
+    <select id="selectByYmd" parameterType="java.time.LocalDate" resultMap="commentaryResultMap">
+        SELECT CMNTY_AI_CMTRY_SN
+             , CMTRY_SRC_CD
+             , CMTRY_CRTR_YMD
+             , CMTRY_CN
+             , USE_YN
+             , REG_DT
+             , MDFCN_DT
+          FROM CMNTY_AI_CMTRY
+         WHERE CMTRY_CRTR_YMD = #{cmtryCrtrYmd}
+           AND USE_YN = 'Y'
+    </select>
+</mapper>

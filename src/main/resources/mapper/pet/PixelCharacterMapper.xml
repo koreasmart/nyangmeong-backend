@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.pet.mapper.PixelCharacterMapper">
+
+    <resultMap id="pixelCharacterSummaryResultMap" type="com.nyangmeong.pet.dto.PixelCharacterSummary">
+        <id     column="PET_SN"           property="petSn" />
+        <result column="PET_NM"           property="petNm" />
+        <result column="PET_SE_CD"        property="petSeCd" />
+        <result column="BRUP_ROLE_CD"     property="brupRoleCd" />
+        <result column="RPRS_PET_YN"      property="rprsPetYn" />
+        <result column="PIXEL_CHAR_SN"    property="pixelCharSn" />
+        <result column="CRT_JOB_STTS_CD"  property="crtJobSttsCd" />
+        <result column="BSC_CHAR_SBST_YN" property="bscCharSbstYn" />
+    </resultMap>
+
+    <resultMap id="pixelCharacterResultMap" type="com.nyangmeong.pet.domain.PixelCharacter">
+        <id     column="PIXEL_CHAR_SN"    property="pixelCharSn" />
+        <result column="MBR_SN"           property="mbrSn" />
+        <result column="PET_SN"           property="petSn" />
+        <result column="BSC_CHAR_SBST_YN" property="bscCharSbstYn" />
+        <result column="DEL_YN"           property="delYn" />
+        <result column="REG_DT"           property="regDt" />
+        <result column="MDFCN_DT"         property="mdfcnDt" />
+        <result column="MDFR_ID"          property="mdfrId" />
+    </resultMap>
+
+    <resultMap id="jobResultMap" type="com.nyangmeong.pet.domain.CharacterCreationJob">
+        <id     column="CHAR_CRT_JOB_SN" property="charCrtJobSn" />
+        <result column="PET_SN"          property="petSn" />
+        <result column="MBR_SN"          property="mbrSn" />
+        <result column="OTO_INQRY_SN"    property="otoInqrySn" />
+        <result column="CRT_JOB_STTS_CD" property="crtJobSttsCd" />
+        <result column="PRCS_BGNG_DT"    property="prcsBgngDt" />
+        <result column="PRCS_END_DT"     property="prcsEndDt" />
+        <result column="FAIL_RSN"        property="failRsn" />
+        <result column="IDMPT_DMND_ID"   property="idmptDmndId" />
+        <result column="REG_DT"          property="regDt" />
+        <result column="MDFCN_DT"        property="mdfcnDt" />
+    </resultMap>
+
+    <resultMap id="photoResultMap" type="com.nyangmeong.pet.domain.CharacterPhoto">
+        <id     column="CHAR_PHOTO_SN"   property="charPhotoSn" />
+        <result column="PIXEL_CHAR_SN"   property="pixelCharSn" />
+        <result column="CHAR_CRT_JOB_SN" property="charCrtJobSn" />
+        <result column="ATCH_FILE_SN"    property="atchFileSn" />
+        <result column="PHOTO_ROLE_CD"   property="photoRoleCd" />
+        <result column="SORT_SEQ"        property="sortSeq" />
+        <result column="NOW_INDCT_YN"    property="nowIndctYn" />
+        <result column="REG_DT"          property="regDt" />
+        <result column="MDFCN_DT"        property="mdfcnDt" />
+    </resultMap>
+
+    <resultMap id="heldItemSummaryResultMap" type="com.nyangmeong.pet.dto.HeldItemSummary">
+        <id     column="HLD_ITEM_SN"  property="hldItemSn" />
+        <result column="ITEM_SN"      property="itemSn" />
+        <result column="ITEM_NM"      property="itemNm" />
+        <result column="ITEM_REGN_CD" property="itemRegnCd" />
+        <result column="ATCH_FILE_SN" property="atchFileSn" />
+        <result column="EQUIP_YN"     property="equipYn" />
+    </resultMap>
+
+    <resultMap id="petProfileSummaryResultMap" type="com.nyangmeong.pet.dto.PetProfileSummary">
+        <id     column="PET_SN"    property="petSn" />
+        <result column="PET_NM"    property="petNm" />
+        <result column="PET_SE_CD" property="petSeCd" />
+        <result column="VRTY_NM"   property="vrtyNm" />
+        <result column="COLR_NM"   property="colrNm" />
+        <result column="CHRC_CN"   property="chrcCn" />
+    </resultMap>
+
+    <sql id="pixelCharacterColumns">
+        PIXEL_CHAR_SN
+             , MBR_SN
+             , PET_SN
+             , BSC_CHAR_SBST_YN
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+             , MDFR_ID
+    </sql>
+
+    <sql id="jobColumns">
+        CHAR_CRT_JOB_SN
+             , PET_SN
+             , MBR_SN
+             , OTO_INQRY_SN
+             , CRT_JOB_STTS_CD
+             , PRCS_BGNG_DT
+             , PRCS_END_DT
+             , FAIL_RSN
+             , IDMPT_DMND_ID
+             , REG_DT
+             , MDFCN_DT
+    </sql>
+
+    <sql id="photoColumns">
+        CHAR_PHOTO_SN
+             , PIXEL_CHAR_SN
+             , CHAR_CRT_JOB_SN
+             , ATCH_FILE_SN
+             , PHOTO_ROLE_CD
+             , SORT_SEQ
+             , NOW_INDCT_YN
+             , REG_DT
+             , MDFCN_DT
+    </sql>
+
+    <select id="selectList" parameterType="long" resultMap="pixelCharacterSummaryResultMap">
+        /* 반려동물별 픽셀 캐릭터 목록 조회 */
+        SELECT P.PET_SN
+             , P.PET_NM
+             , P.PET_SE_CD
+             , R.BRUP_ROLE_CD
+             , CASE WHEN R.RPRS_PET_YN = 'Y' THEN TRUE ELSE FALSE END AS RPRS_PET_YN
+             , C.PIXEL_CHAR_SN
+             , J.CRT_JOB_STTS_CD
+             , CASE WHEN C.PIXEL_CHAR_SN IS NULL THEN NULL
+                    WHEN C.BSC_CHAR_SBST_YN = 'Y' THEN TRUE
+                    ELSE FALSE END AS BSC_CHAR_SBST_YN
+          FROM BRUP_REL R
+          JOIN PET P
+            ON P.PET_SN = R.PET_SN
+           AND P.DEL_YN = 'N'
+          LEFT JOIN PIXEL_CHAR C
+            ON C.PET_SN = P.PET_SN
+           AND C.DEL_YN = 'N'
+          LEFT JOIN CHAR_CRT_JOB J
+            ON J.CHAR_CRT_JOB_SN = (SELECT MAX(LJ.CHAR_CRT_JOB_SN)
+                                      FROM CHAR_CRT_JOB LJ
+                                     WHERE LJ.PET_SN = P.PET_SN)
+         WHERE R.MBR_SN = #{mbrSn}
+           AND R.USE_YN = 'Y'
+         ORDER BY P.REG_DT
+                , P.PET_SN
+    </select>
+
+    <select id="selectPixelCharacter" parameterType="long" resultMap="pixelCharacterResultMap">
+        /* 픽셀 캐릭터 단건 조회 */
+        SELECT <include refid="pixelCharacterColumns" />
+          FROM PIXEL_CHAR
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND DEL_YN = 'N'
+    </select>
+
+    <select id="selectByPetSn" parameterType="long" resultMap="pixelCharacterResultMap">
+        /* 반려동물의 픽셀 캐릭터 조회 */
+        SELECT <include refid="pixelCharacterColumns" />
+          FROM PIXEL_CHAR
+         WHERE PET_SN = #{petSn}
+           AND DEL_YN = 'N'
+    </select>
+
+    <insert id="insertPixelCharacter" parameterType="com.nyangmeong.pet.domain.PixelCharacter"
+            useGeneratedKeys="true" keyProperty="pixelCharSn" keyColumn="PIXEL_CHAR_SN">
+        /* 픽셀 캐릭터 등록 */
+        INSERT INTO PIXEL_CHAR
+             ( MBR_SN
+             , PET_SN
+             , BSC_CHAR_SBST_YN
+             , REG_DT
+             , MDFCN_DT
+             , MDFR_ID )
+        VALUES
+             ( #{mbrSn}
+             , #{petSn}
+             , 'N'
+             , NOW()
+             , NOW()
+             , #{mdfrId} )
+    </insert>
+
+    <update id="updateBscCharSbstYn">
+        /* 기본 캐릭터 대체 여부 변경 */
+        UPDATE PIXEL_CHAR
+           SET BSC_CHAR_SBST_YN = #{bscCharSbstYn}
+             , MDFR_ID = #{actorId}
+             , MDFCN_DT = NOW()
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND DEL_YN = 'N'
+    </update>
+
+    <select id="selectJob" parameterType="long" resultMap="jobResultMap">
+        /* 캐릭터 생성 작업 단건 조회 */
+        SELECT <include refid="jobColumns" />
+          FROM CHAR_CRT_JOB
+         WHERE CHAR_CRT_JOB_SN = #{charCrtJobSn}
+    </select>
+
+    <select id="selectJobByIdmptDmndId" parameterType="string" resultMap="jobResultMap">
+        /* 멱등 요청 ID로 캐릭터 생성 작업 조회 */
+        SELECT <include refid="jobColumns" />
+          FROM CHAR_CRT_JOB
+         WHERE IDMPT_DMND_ID = #{idmptDmndId}
+    </select>
+
+    <select id="selectLatestJob" parameterType="long" resultMap="jobResultMap">
+        /* 반려동물의 최근 캐릭터 생성 작업 조회 */
+        SELECT <include refid="jobColumns" />
+          FROM CHAR_CRT_JOB
+         WHERE PET_SN = #{petSn}
+         ORDER BY CHAR_CRT_JOB_SN DESC
+         LIMIT 1
+    </select>
+
+    <insert id="insertJob" parameterType="com.nyangmeong.pet.domain.CharacterCreationJob"
+            useGeneratedKeys="true" keyProperty="charCrtJobSn" keyColumn="CHAR_CRT_JOB_SN">
+        /* 캐릭터 생성 작업 등록 */
+        INSERT INTO CHAR_CRT_JOB
+             ( PET_SN
+             , MBR_SN
+             , CRT_JOB_STTS_CD
+             , IDMPT_DMND_ID
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{petSn}
+             , #{mbrSn}
+             , #{crtJobSttsCd}
+             , #{idmptDmndId}
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateJobStarted">
+        /* 캐릭터 생성 작업 시작 처리 */
+        UPDATE CHAR_CRT_JOB
+           SET CRT_JOB_STTS_CD = #{aftrSttsCd}
+             , PRCS_BGNG_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE CHAR_CRT_JOB_SN = #{charCrtJobSn}
+           AND CRT_JOB_STTS_CD = #{bfrSttsCd}
+    </update>
+
+    <update id="updateJobFinished">
+        /* 캐릭터 생성 작업 종료 처리(성공·실패) */
+        UPDATE CHAR_CRT_JOB
+           SET CRT_JOB_STTS_CD = #{aftrSttsCd}
+             , FAIL_RSN = #{failRsn}
+             , PRCS_END_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE CHAR_CRT_JOB_SN = #{charCrtJobSn}
+           AND CRT_JOB_STTS_CD IN
+            <foreach collection="bfrSttsCds" item="bfrSttsCd" open="(" separator="," close=")">
+                #{bfrSttsCd}
+            </foreach>
+    </update>
+
+    <update id="updateJobInquiry">
+        /* 캐릭터 생성 작업에 문의 연결 */
+        UPDATE CHAR_CRT_JOB
+           SET OTO_INQRY_SN = #{otoInqrySn}
+             , MDFCN_DT = NOW()
+         WHERE CHAR_CRT_JOB_SN = #{charCrtJobSn}
+           AND OTO_INQRY_SN IS NULL
+    </update>
+
+    <insert id="insertJobStatusHistory" parameterType="com.nyangmeong.pet.domain.CharacterJobStatusHistory"
+            useGeneratedKeys="true" keyProperty="charCrtJobSttsHstrySn" keyColumn="CHAR_CRT_JOB_STTS_HSTRY_SN">
+        /* 캐릭터 생성 작업 상태 변경 이력 등록 */
+        INSERT INTO CHAR_CRT_JOB_STTS_HSTRY
+             ( CHAR_CRT_JOB_SN
+             , MBR_SN
+             , BFR_STTS_CD
+             , AFTR_STTS_CD
+             , CHG_RSN
+             , REG_DT )
+        VALUES
+             ( #{charCrtJobSn}
+             , #{mbrSn}
+             , #{bfrSttsCd}
+             , #{aftrSttsCd}
+             , #{chgRsn}
+             , NOW() )
+    </insert>
+
+    <insert id="insertPhoto" parameterType="com.nyangmeong.pet.domain.CharacterPhoto"
+            useGeneratedKeys="true" keyProperty="charPhotoSn" keyColumn="CHAR_PHOTO_SN">
+        /* 캐릭터 사진 등록 */
+        INSERT INTO CHAR_PHOTO
+             ( PIXEL_CHAR_SN
+             , CHAR_CRT_JOB_SN
+             , ATCH_FILE_SN
+             , PHOTO_ROLE_CD
+             , SORT_SEQ
+             , NOW_INDCT_YN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{pixelCharSn}
+             , #{charCrtJobSn}
+             , #{atchFileSn}
+             , #{photoRoleCd}
+             , #{sortSeq}
+             , #{nowIndctYn}
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <select id="selectJobPhoto" resultMap="photoResultMap">
+        /* 생성 작업의 역할별 사진 조회 */
+        SELECT <include refid="photoColumns" />
+          FROM CHAR_PHOTO
+         WHERE CHAR_CRT_JOB_SN = #{charCrtJobSn}
+           AND PHOTO_ROLE_CD = #{photoRoleCd}
+         ORDER BY SORT_SEQ
+                , CHAR_PHOTO_SN
+         LIMIT 1
+    </select>
+
+    <select id="selectCurrentPhoto" parameterType="long" resultMap="photoResultMap">
+        /* 캐릭터의 현재 표시 사진 조회 */
+        SELECT <include refid="photoColumns" />
+          FROM CHAR_PHOTO
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND NOW_INDCT_YN = 'Y'
+    </select>
+
+    <update id="updatePhotoHidden" parameterType="long">
+        /* 캐릭터의 현재 표시 사진 해제 */
+        UPDATE CHAR_PHOTO
+           SET NOW_INDCT_YN = 'N'
+             , MDFCN_DT = NOW()
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND NOW_INDCT_YN = 'Y'
+    </update>
+
+    <select id="selectHeldItems" parameterType="long" resultMap="heldItemSummaryResultMap">
+        /* 캐릭터 보유 아이템 목록 조회 */
+        SELECT H.HLD_ITEM_SN
+             , H.ITEM_SN
+             , I.ITEM_NM
+             , I.ITEM_REGN_CD
+             , I.ATCH_FILE_SN
+             , CASE WHEN H.EQUIP_YN = 'Y' THEN TRUE ELSE FALSE END AS EQUIP_YN
+          FROM HLD_ITEM H
+          JOIN ITEM I
+            ON I.ITEM_SN = H.ITEM_SN
+         WHERE H.PIXEL_CHAR_SN = #{pixelCharSn}
+           AND H.DEL_YN = 'N'
+         ORDER BY I.ITEM_REGN_CD
+                , I.SORT_SEQ
+                , H.HLD_ITEM_SN
+    </select>
+
+    <update id="updateUnequipAll" parameterType="long">
+        /* 보유 아이템 전체 착용 해제 */
+        UPDATE HLD_ITEM
+           SET EQUIP_YN = 'N'
+             , MDFCN_DT = NOW()
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND EQUIP_YN = 'Y'
+           AND DEL_YN = 'N'
+    </update>
+
+    <update id="updateEquip">
+        /* 선택한 보유 아이템 착용 */
+        UPDATE HLD_ITEM
+           SET EQUIP_YN = 'Y'
+             , MDFCN_DT = NOW()
+         WHERE PIXEL_CHAR_SN = #{pixelCharSn}
+           AND DEL_YN = 'N'
+           AND HLD_ITEM_SN IN
+            <foreach collection="hldItemSns" item="hldItemSn" open="(" separator="," close=")">
+                #{hldItemSn}
+            </foreach>
+    </update>
+
+    <select id="selectPetProfile" parameterType="long" resultMap="petProfileSummaryResultMap">
+        /* 캐릭터 생성용 반려동물 프로필 조회 */
+        SELECT P.PET_SN
+             , P.PET_NM
+             , P.PET_SE_CD
+             , COALESCE(P.VRTY_DRCT_INPT_NM, V.VRTY_NM) AS VRTY_NM
+             , COALESCE(P.COLR_DRCT_INPT_NM, CC.COM_CD_NM) AS COLR_NM
+             , P.CHRC_CN
+          FROM PET P
+          LEFT JOIN VRTY V
+            ON V.VRTY_SN = P.VRTY_SN
+          LEFT JOIN COM_CD CC
+            ON CC.COM_CD = P.COLR_CD
+         WHERE P.PET_SN = #{petSn}
+           AND P.DEL_YN = 'N'
+    </select>
+</mapper>

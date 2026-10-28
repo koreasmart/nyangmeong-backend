@@ -1,0 +1,62 @@
+# 이 파일을 같은 폴더에 application.properties 로 복사해 쓴다(git 제외). 값은 디스코드의 최신 application.properties 를 받는다.
+# 키를 추가하거나 바꾸면 이 예시 파일도 같은 PR에서 고치고, 디스코드의 파일도 갱신한다.
+# 도메인별 구획 안에 추가한다. 맨 끝에 붙이면 병합할 때 충돌한다. 비밀값은 이 예시 파일에 쓰지 않는다.
+
+# 공통
+spring.application.name=nyangmeong-backend
+spring.profiles.default=local
+spring.mvc.format.date=iso
+spring.mvc.format.date-time=iso
+mybatis.mapper-locations=classpath:mapper/**/*.xml
+logging.level.com.nyangmeong=debug
+
+# 공용 DB(비밀값, 디스코드로 받는다)
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+
+# 보안(비밀값, 디스코드로 받는다). Base64 값이며 AES는 32바이트, HMAC·JWT는 32바이트 이상. 없으면 서버가 뜨지 않는다
+app.crypto.aes-key-base64=
+app.crypto.hmac-key-base64=
+app.jwt.secret-base64=
+# 만료(밀리초). 생략하면 Access 30분, Refresh 1일
+app.jwt.access-token-expiry-ms=1800000
+app.jwt.refresh-token-expiry-ms=86400000
+# 쿠키 Secure 플래그. 운영(HTTPS)만 true
+app.cookie.secure=false
+# 쿠키를 실어 보낼 수 있는 프론트 오리진(쉼표 구분). 개발은 Vite 주소
+app.cors.allowed-origins=http://localhost:5173
+# 로그인 없이 여는 경로(쉼표 구분). 목록 밖은 전부 인증이 필요하다. 생략하면 아래와 같은 기본값
+app.security.permit-all-paths=/api/auth/dev-tokens,/api/auth/login,/api/auth/login-attempt-limits,/api/auth/captchas,/api/auth/refresh,/api/auth/logout,/api/terms,/api/terms/*,/api/email-certifications,/api/email-certifications/*/verify,/api/members,/api/members/nickname-availability,/api/members/phone-availability,/api/members/me/nickname,/api/files/public/**,/swagger-ui/**,/swagger-ui.html,/v3/api-docs/**
+
+# 이메일 인증·가입(SCR-ACC-001). 모두 생략 가능, 생략하면 아래와 같은 기본값(초·분 단위는 키 이름 끝)
+app.email-cert.code-validity-seconds=180
+app.email-cert.resend-interval-seconds=60
+app.email-cert.resend-window-minutes=60
+app.email-cert.resend-max-count=5
+app.email-cert.verified-keep-minutes=30
+app.email-cert.fail-limit=5
+app.signup.nickname-token-valid-minutes=30
+
+# 파일 저장(SCR-MYP-010). 저장 루트 폴더. 비우면 OS별 기본 경로: Windows는 프로젝트가 있는 드라이브 루트 아래 home/ggorilab/attachment, Mac은 /Users/Shared/ggorilab/attachment
+# 그 밖의 OS와 prod는 반드시 적는다(운영은 application-prod.properties). 개인 PC 경로는 커밋하지 않는다. 업로드 상한은 SYS_STNG.FILE_MAX_SZ(10MB)와 맞춘다
+# app.file.root-dir=
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+# 로그 파일 폴더(logback-spring.xml). 비우면 실행 폴더 아래 logs. 운영은 application-prod.properties에 /home/ggorilab/logs
+# app.log.dir=
+# 캐릭터 생성기. 외부 API가 정해지기 전에는 fake(가짜 성공), 실패 시험은 fake-fail
+app.character.generator=fake
+
+# 알림 메일(SCR-AIM-006). 메일 본문 링크(케어 캘린더·알림 설정)의 프론트 주소. 생략하면 아래와 같은 기본값
+app.front-base-url=http://localhost:5173
+
+# 케어미션 정산·출제 배치(SCR-MYP-020). 생략하면 false(꺼짐). 배포는 application-prod.properties가 켠다
+# 로컬에서는 공용 DB에 미션을 만들어 확인할 때만 아래 주석을 풀고, 확인이 끝나면 다시 지운다(켠 PC마다 매시 정각에 공용 DB에 씀)
+# app.care-mission.batch-enabled=true
+
+# 시드 데이터(README "시드 데이터", 비밀값, 디스코드로 받는다). seedData가 모든 시드 계정에 넣는 비밀번호. 공개 저장소라 값을 커밋하지 않는다
+app.seed.password=
+
+# DMS MCP 서버 주소. setup이 읽어 AI 도구에 등록한다. claude.ai dms 커넥터가 연결돼 있으면 비워도 된다
+dms.mcp-url=

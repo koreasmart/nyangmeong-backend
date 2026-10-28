@@ -1,0 +1,13 @@
+{
+  "name": "nyangmeong-backend",
+  "owner": {
+    "name": "kkori-lab"
+  },
+  "plugins": [
+    {
+      "name": "limit-guard",
+      "source": "./.claude/mods/limit-guard/",
+      "description": "5시간 한도 85% 경고, 95% 에 핸드오프 마커 + 커밋, 푸시는 사람이 승인"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# prod 프로필 테스트(DevTokenControllerTest 등) 전용. 프로필 파일은 프로필 없는 application.yml보다 우선하므로
+# main의 application-prod.properties에 적힌 운영 경로를 여기서 다시 덮는다. CI 러너는 /home/ggorilab 아래에 쓸 수 없다
+app:
+  log:
+    dir: build/test-logs

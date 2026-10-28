@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.community.mapper.ReportMapper">
+
+    <select id="existsReport" resultType="boolean">
+        SELECT EXISTS (SELECT 1
+                         FROM DCLR
+                        WHERE MBR_SN = #{mbrSn}
+        <choose>
+            <when test="pstSn != null">
+                          AND PST_SN = #{pstSn}
+            </when>
+            <otherwise>
+                          AND CMNT_SN = #{cmntSn}
+            </otherwise>
+        </choose>
+                       )
+    </select>
+
+    <select id="countReports" resultType="int">
+        SELECT COUNT(*)
+          FROM DCLR
+        <where>
+            <choose>
+                <when test="pstSn != null">
+                    PST_SN = #{pstSn}
+                </when>
+                <otherwise>
+                    CMNT_SN = #{cmntSn}
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <insert id="insertReport" parameterType="com.nyangmeong.community.domain.Report"
+            useGeneratedKeys="true" keyProperty="dclrSn" keyColumn="DCLR_SN">
+        INSERT INTO DCLR
+             ( CMNT_SN
+             , MBR_SN
+             , PST_SN
+             , DCLR_RSN_CD
+             , DCLR_PRCS_STTS_CD
+             , DCLR_DTL_CN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{cmntSn}
+             , #{mbrSn}
+             , #{pstSn}
+             , #{dclrRsnCd}
+             , #{dclrPrcsSttsCd}
+             , #{dclrDtlCn}
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <insert id="insertStatusHistory" parameterType="com.nyangmeong.community.domain.ReportStatusHistory"
+            useGeneratedKeys="true" keyProperty="dclrSttsHstrySn" keyColumn="DCLR_STTS_HSTRY_SN">
+        INSERT INTO DCLR_STTS_HSTRY
+             ( DCLR_SN
+             , MBR_SN
+             , BFR_STTS_CD
+             , AFTR_STTS_CD
+             , CHG_RSN
+             , REG_DT )
+        VALUES
+             ( #{dclrSn}
+             , #{mbrSn}
+             , #{bfrSttsCd}
+             , #{aftrSttsCd}
+             , #{chgRsn}
+             , NOW() )
+    </insert>
+</mapper>

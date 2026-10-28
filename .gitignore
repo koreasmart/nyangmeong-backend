@@ -1,11 +1,70 @@
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # 비밀값
 .env
 .env.*
 
-# 개인 작업 기록과 Claude Code 개인 설정
-.claude/
+# 로그와 JVM 비정상 종료 기록
+logs/
+*.log
+hs_err_pid*
+replay_pid*
+
+# VS Code 실행·디버그 설정은 사람마다 달라서 커밋하지 않는다. 포맷 설정(settings.json)과 추천 확장(extensions.json)은 커밋한다
+.vscode/launch.json
+
+# Claude Code는 팀 공용 설정(settings.json, skills, mods)만 커밋한다. 작업 기록은 handoff/<이름>.md로 커밋한다
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+!.claude/mods/
 CLAUDE.local.md
+
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# /start가 내려받는 DMS 문서 캐시(화면설계서 등). 각자 PC에만 둔다
+.cache/
+
+# 스프링 설정. 비밀값이 들어 있어 저장소에 올리지 않고 디스코드로 공유한다(키 목록은 application.properties.example)
+application.properties
+application-local.properties
+application-mail-local.properties
+
+# 업로드 파일(로컬 저장 경로)
+/uploads/

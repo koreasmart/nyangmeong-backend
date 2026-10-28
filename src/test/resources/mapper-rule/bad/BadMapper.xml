@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- MapperXmlRuleTest가 위반을 잡는지 확인하는 입력이다. 실제 Mapper가 아니다 -->
+<mapper namespace="fixture.BadMapper">
+
+    <select id="selectWithoutCondition" resultType="map">
+        SELECT PET_SN, PET_NM
+          FROM PET
+         WHERE PET_SN = #{petSn}
+    </select>
+
+    <select id="selectJoinWithOneCondition" resultType="map">
+        SELECT p.PET_SN, e.EXPND_SN
+          FROM PET p
+          JOIN EXPND e ON e.PET_SN = p.PET_SN
+         WHERE p.DEL_YN = 'N'
+    </select>
+
+</mapper>

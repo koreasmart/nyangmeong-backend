@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.global.setting.SystemSettingMapper">
+
+    <resultMap id="systemSettingResultMap" type="com.nyangmeong.global.setting.SystemSetting">
+        <id     column="SYS_STNG_SN" property="sysStngSn" />
+        <result column="PET_MAX_CNT" property="petMaxCnt" />
+        <result column="JNT_BRUP_MAX_NOPE" property="jntBrupMaxNope" />
+        <result column="PST_IMG_MAX_CNT" property="pstImgMaxCnt" />
+        <result column="FILE_MAX_SZ" property="fileMaxSz" />
+        <result column="DSHBD_CARE_MAX_EXPSR_CNT" property="dshbdCareMaxExpsrCnt" />
+        <result column="LGN_FAIL_LMT_NMTM" property="lgnFailLmtNmtm" />
+        <result column="BLIND_DCLR_ACML_CNT" property="blindDclrAcmlCnt" />
+        <result column="LOST_TPOF_EXPRY_CRTR_DAY_CNT" property="lostTpofExpryCrtrDayCnt" />
+        <result column="INVTN_VLD_DAY_CNT" property="invtnVldDayCnt" />
+        <result column="NOTI_HIDE_CRTR_DAY_CNT" property="notiHideCrtrDayCnt" />
+        <result column="WHDWL_MBR_KPNG_DAY_CNT" property="whdwlMbrKpngDayCnt" />
+        <result column="LOWST_HRWG_APLCN_YR" property="lowstHrwgAplcnYr" />
+        <result column="LOWST_HRWG_AMT" property="lowstHrwgAmt" />
+        <result column="AI_CNVRS_TURN_CNT" property="aiCnvrsTurnCnt" />
+        <result column="AI_TKN_UPLMT_CNT" property="aiTknUplmtCnt" />
+        <result column="AI_CMTRY_BSC_CN" property="aiCmtryBscCn" />
+        <result column="REG_DT" property="regDt" />
+        <result column="MDFCN_DT" property="mdfcnDt" />
+        <result column="RGTR_ID" property="rgtrId" />
+        <result column="MDFR_ID" property="mdfrId" />
+        <result column="DSCV_AUTO_CMNT_CN" property="dscvAutoCmntCn" />
+        <result column="MTCH_NO_RSPNS_END_CRTR_DAY_CNT" property="mtchNoRspnsEndCrtrDayCnt" />
+    </resultMap>
+
+    <select id="selectCurrent" resultMap="systemSettingResultMap">
+        /* 시스템 설정 조회 */
+        SELECT SYS_STNG_SN
+             , PET_MAX_CNT
+             , JNT_BRUP_MAX_NOPE
+             , PST_IMG_MAX_CNT
+             , FILE_MAX_SZ
+             , DSHBD_CARE_MAX_EXPSR_CNT
+             , LGN_FAIL_LMT_NMTM
+             , BLIND_DCLR_ACML_CNT
+             , LOST_TPOF_EXPRY_CRTR_DAY_CNT
+             , INVTN_VLD_DAY_CNT
+             , NOTI_HIDE_CRTR_DAY_CNT
+             , WHDWL_MBR_KPNG_DAY_CNT
+             , LOWST_HRWG_APLCN_YR
+             , LOWST_HRWG_AMT
+             , AI_CNVRS_TURN_CNT
+             , AI_TKN_UPLMT_CNT
+             , AI_CMTRY_BSC_CN
+             , REG_DT
+             , MDFCN_DT
+             , RGTR_ID
+             , MDFR_ID
+             , DSCV_AUTO_CMNT_CN
+             , MTCH_NO_RSPNS_END_CRTR_DAY_CNT
+          FROM SYS_STNG
+         ORDER BY SYS_STNG_SN
+         LIMIT 1
+    </select>
+</mapper>

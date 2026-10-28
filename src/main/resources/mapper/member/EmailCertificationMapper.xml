@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.member.mapper.EmailCertificationMapper">
+
+    <resultMap id="emailCertificationResultMap" type="com.nyangmeong.member.domain.EmailCertification">
+        <id     column="EML_CERT_SN"        property="emlCertSn" />
+        <result column="EML_CERT_PRPS_CD"   property="emlCertPrpsCd" />
+        <result column="CERT_TRGT_EML_ENC"  property="certTrgtEmlEnc" />
+        <result column="CERT_TRGT_EML_HMAC" property="certTrgtEmlHmac" />
+        <result column="CERT_NO_HASH"       property="certNoHash" />
+        <result column="CERT_FAIL_NMTM"     property="certFailNmtm" />
+        <result column="CERT_EXPRY_DT"      property="certExpryDt" />
+        <result column="CERT_CMPTN_DT"      property="certCmptnDt" />
+        <result column="CERT_USE_CMPTN_DT"  property="certUseCmptnDt" />
+        <result column="CERT_INVLD_DT"      property="certInvldDt" />
+        <result column="REG_DT"             property="regDt" />
+    </resultMap>
+
+    <!-- EML_CERT 는 DEL_YN 없음, 무효화는 CERT_INVLD_DT -->
+    <select id="selectBySn" parameterType="long" resultMap="emailCertificationResultMap">
+        SELECT EML_CERT_SN
+             , EML_CERT_PRPS_CD
+             , CERT_TRGT_EML_ENC
+             , CERT_TRGT_EML_HMAC
+             , CERT_NO_HASH
+             , CERT_FAIL_NMTM
+             , CERT_EXPRY_DT
+             , CERT_CMPTN_DT
+             , CERT_USE_CMPTN_DT
+             , CERT_INVLD_DT
+             , REG_DT
+          FROM EML_CERT
+         WHERE EML_CERT_SN = #{emlCertSn}
+    </select>
+
+    <select id="selectRegDtList" resultType="java.time.LocalDateTime">
+        SELECT REG_DT
+          FROM EML_CERT
+         WHERE CERT_TRGT_EML_HMAC = #{certTrgtEmlHmac}
+           AND EML_CERT_PRPS_CD = #{emlCertPrpsCd}
+           AND REG_DT >= #{since}
+         ORDER BY REG_DT, EML_CERT_SN
+    </select>
+
+    <insert id="insert" parameterType="com.nyangmeong.member.domain.EmailCertification"
+            useGeneratedKeys="true" keyProperty="emlCertSn">
+        INSERT INTO EML_CERT (
+               EML_CERT_PRPS_CD
+             , CERT_TRGT_EML_ENC
+             , CERT_TRGT_EML_HMAC
+             , CERT_NO_HASH
+             , CERT_EXPRY_DT
+             , REG_DT
+        ) VALUES (
+               #{emlCertPrpsCd}
+             , #{certTrgtEmlEnc}
+             , #{certTrgtEmlHmac}
+             , #{certNoHash}
+             , #{certExpryDt}
+             , #{regDt}
+        )
+    </insert>
+
+    <update id="updateInvalidatePrevious">
+        UPDATE EML_CERT
+           SET CERT_INVLD_DT = #{now}
+         WHERE CERT_TRGT_EML_HMAC = #{certTrgtEmlHmac}
+           AND EML_CERT_PRPS_CD = #{emlCertPrpsCd}
+           AND CERT_INVLD_DT IS NULL
+           AND CERT_USE_CMPTN_DT IS NULL
+    </update>
+
+    <update id="updateInvalidate">
+        UPDATE EML_CERT
+           SET CERT_INVLD_DT = #{now}
+         WHERE EML_CERT_SN = #{emlCertSn}
+           AND CERT_INVLD_DT IS NULL
+    </update>
+
+    <update id="updateFailCount" parameterType="long">
+        UPDATE EML_CERT
+           SET CERT_FAIL_NMTM = CERT_FAIL_NMTM + 1
+         WHERE EML_CERT_SN = #{emlCertSn}
+    </update>
+
+    <update id="updateCompleted">
+        UPDATE EML_CERT
+           SET CERT_CMPTN_DT = #{now}
+         WHERE EML_CERT_SN = #{emlCertSn}
+           AND CERT_CMPTN_DT IS NULL
+    </update>
+
+    <update id="updateUsed">
+        UPDATE EML_CERT
+           SET CERT_USE_CMPTN_DT = #{now}
+         WHERE EML_CERT_SN = #{emlCertSn}
+           AND CERT_CMPTN_DT IS NOT NULL
+           AND CERT_USE_CMPTN_DT IS NULL
+    </update>
+</mapper>

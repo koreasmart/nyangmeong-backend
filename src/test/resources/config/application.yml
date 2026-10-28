@@ -1,0 +1,33 @@
+# 테스트는 DB에 붙지 않는다. 애플리케이션이 뜨는 데 필요한 주소 문자열만 준다.
+# 접속할 수 없는 주소라서, 기동 중에 쿼리를 날리는 코드가 생기면 접속 실패로 테스트가 실패한다
+# main의 application.properties는 git에 없어서 PC마다 없을 수 있다. 테스트에 필요한 공통 설정은 여기에도 둔다
+spring:
+  application:
+    name: nyangmeong-backend
+  datasource:
+    url: jdbc:mysql://127.0.0.1:1/none
+    username: none
+    password: none
+  mvc:
+    format:
+      date: iso
+      date-time: iso
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+
+# 테스트 전용 더미 키. 실제 키가 아니며 운영 값과 무관하다(각 32바이트를 Base64로 적은 것)
+app:
+  crypto:
+    aes-key-base64: dGVzdC1hZXMta2V5LTMyLWJ5dGVzLWxvbmctMDAwMDA=
+    hmac-key-base64: dGVzdC1obWFjLWtleS0zMi1ieXRlcy1sb25nLTAwMDA=
+  jwt:
+    secret-base64: dGVzdC1qd3Qtc2VjcmV0LTMyLWJ5dGVzLWxvbmctMDAwMA==
+
+# 테스트가 쓰는 파일 저장 루트(빌드 폴더 안). 기본 경로(OS별)를 만들지 않는다
+  file:
+    root-dir: build/test-attachment
+
+# 테스트가 쓰는 로그 폴더(빌드 폴더 안). prod 프로필 테스트가 /home/ggorilab/logs를 만들지 않게 한다
+  log:
+    dir: build/test-logs

@@ -1,0 +1,21 @@
+# PR마다 빌드와 테스트(ArchUnit·Mapper 규칙 포함)를 돌린다. application.properties는 없어도 빌드되므로 비밀값을 넣지 않는다
+name: build
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build
+        run: ./gradlew build --no-daemon

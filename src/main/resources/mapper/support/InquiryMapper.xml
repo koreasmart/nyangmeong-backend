@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.support.mapper.InquiryMapper">
+
+    <resultMap id="inquiryResultMap" type="com.nyangmeong.support.domain.Inquiry">
+        <id     column="OTO_INQRY_SN"         property="otoInqrySn" />
+        <result column="MBR_SN"               property="mbrSn" />
+        <result column="PRCS_MBR_SN"          property="prcsMbrSn" />
+        <result column="PIXEL_CHAR_SN"        property="pixelCharSn" />
+        <result column="CHAR_PHOTO_SN"        property="charPhotoSn" />
+        <result column="INQRY_TYPE_CD"        property="inqryTypeCd" />
+        <result column="INQRY_PRCS_STTS_CD"   property="inqryPrcsSttsCd" />
+        <result column="CHAR_ERR_PRCS_RSLT_CD" property="charErrPrcsRsltCd" />
+        <result column="INQRY_TTL"            property="inqryTtl" />
+        <result column="INQRY_CN"             property="inqryCn" />
+        <result column="ANS_CN"               property="ansCn" />
+        <result column="ANS_DT"               property="ansDt" />
+        <result column="REG_DT"               property="regDt" />
+        <result column="MDFCN_DT"             property="mdfcnDt" />
+    </resultMap>
+
+    <resultMap id="inquirySummaryResultMap" type="com.nyangmeong.support.dto.InquirySummary">
+        <id     column="OTO_INQRY_SN"       property="otoInqrySn" />
+        <result column="INQRY_TYPE_CD"      property="inqryTypeCd" />
+        <result column="INQRY_TYPE_CD_NM"   property="inqryTypeCdNm" />
+        <result column="INQRY_TTL"          property="inqryTtl" />
+        <result column="INQRY_PRCS_STTS_CD" property="inqryPrcsSttsCd" />
+        <result column="INQRY_PRCS_STTS_CD_NM" property="inqryPrcsSttsCdNm" />
+        <result column="REG_DT"             property="regDt" />
+    </resultMap>
+
+    <resultMap id="inquiryPhotoResultMap" type="com.nyangmeong.support.domain.InquiryPhoto">
+        <id     column="INQRY_ATCH_PHOTO_SN" property="inqryAtchPhotoSn" />
+        <result column="OTO_INQRY_SN"        property="otoInqrySn" />
+        <result column="ATCH_FILE_SN"        property="atchFileSn" />
+        <result column="SORT_SEQ"            property="sortSeq" />
+        <result column="DEL_YN"              property="delYn" />
+        <result column="REG_DT"              property="regDt" />
+        <result column="MDFCN_DT"            property="mdfcnDt" />
+    </resultMap>
+
+    <select id="selectList" resultMap="inquirySummaryResultMap">
+        /* 1:1 문의 목록 조회 */
+        SELECT I.OTO_INQRY_SN
+             , I.INQRY_TYPE_CD
+             , T.COM_CD_NM AS INQRY_TYPE_CD_NM
+             , I.INQRY_TTL
+             , I.INQRY_PRCS_STTS_CD
+             , S.COM_CD_NM AS INQRY_PRCS_STTS_CD_NM
+             , I.REG_DT
+          FROM OTO_INQRY I
+          LEFT JOIN COM_CD T
+            ON T.COM_CD = I.INQRY_TYPE_CD
+          LEFT JOIN COM_CD S
+            ON S.COM_CD = I.INQRY_PRCS_STTS_CD
+         WHERE I.MBR_SN = #{mbrSn}
+        <if test="inqryPrcsSttsCd != null">
+           AND I.INQRY_PRCS_STTS_CD = #{inqryPrcsSttsCd}
+        </if>
+         ORDER BY I.REG_DT DESC
+                , I.OTO_INQRY_SN DESC
+    </select>
+
+    <select id="selectInquiry" parameterType="long" resultMap="inquiryResultMap">
+        /* 1:1 문의 단건 조회 */
+        SELECT OTO_INQRY_SN
+             , MBR_SN
+             , PRCS_MBR_SN
+             , PIXEL_CHAR_SN
+             , CHAR_PHOTO_SN
+             , INQRY_TYPE_CD
+             , INQRY_PRCS_STTS_CD
+             , CHAR_ERR_PRCS_RSLT_CD
+             , INQRY_TTL
+             , INQRY_CN
+             , ANS_CN
+             , ANS_DT
+             , REG_DT
+             , MDFCN_DT
+          FROM OTO_INQRY
+         WHERE OTO_INQRY_SN = #{otoInqrySn}
+    </select>
+
+    <select id="selectCodeName" parameterType="string" resultType="string">
+        /* 공통코드명 조회 */
+        SELECT COM_CD_NM
+          FROM COM_CD
+         WHERE COM_CD = #{comCd}
+         LIMIT 1
+    </select>
+
+    <select id="selectPhotos" parameterType="long" resultMap="inquiryPhotoResultMap">
+        /* 문의 첨부 사진 목록 조회 */
+        SELECT INQRY_ATCH_PHOTO_SN
+             , OTO_INQRY_SN
+             , ATCH_FILE_SN
+             , SORT_SEQ
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT
+          FROM INQRY_ATCH_PHOTO
+         WHERE OTO_INQRY_SN = #{otoInqrySn}
+           AND DEL_YN = 'N'
+         ORDER BY SORT_SEQ
+                , INQRY_ATCH_PHOTO_SN
+    </select>
+
+    <insert id="insertInquiry" parameterType="com.nyangmeong.support.domain.Inquiry"
+            useGeneratedKeys="true" keyProperty="otoInqrySn" keyColumn="OTO_INQRY_SN">
+        /* 1:1 문의 등록 */
+        INSERT INTO OTO_INQRY
+             ( MBR_SN
+             , PIXEL_CHAR_SN
+             , CHAR_PHOTO_SN
+             , INQRY_TYPE_CD
+             , INQRY_PRCS_STTS_CD
+             , INQRY_TTL
+             , INQRY_CN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{mbrSn}
+             , #{pixelCharSn}
+             , #{charPhotoSn}
+             , #{inqryTypeCd}
+             , #{inqryPrcsSttsCd}
+             , #{inqryTtl}
+             , #{inqryCn}
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <insert id="insertStatusHistory" parameterType="com.nyangmeong.support.domain.InquiryStatusHistory"
+            useGeneratedKeys="true" keyProperty="otoInqrySttsHstrySn" keyColumn="OTO_INQRY_STTS_HSTRY_SN">
+        /* 1:1 문의 상태 변경 이력 등록 */
+        INSERT INTO OTO_INQRY_STTS_HSTRY
+             ( OTO_INQRY_SN
+             , MBR_SN
+             , BFR_STTS_CD
+             , AFTR_STTS_CD
+             , CHG_RSN
+             , REG_DT )
+        VALUES
+             ( #{otoInqrySn}
+             , #{mbrSn}
+             , #{bfrSttsCd}
+             , #{aftrSttsCd}
+             , #{chgRsn}
+             , NOW() )
+    </insert>
+
+    <insert id="insertPhoto" parameterType="com.nyangmeong.support.domain.InquiryPhoto"
+            useGeneratedKeys="true" keyProperty="inqryAtchPhotoSn" keyColumn="INQRY_ATCH_PHOTO_SN">
+        /* 문의 첨부 사진 등록 */
+        INSERT INTO INQRY_ATCH_PHOTO
+             ( OTO_INQRY_SN
+             , ATCH_FILE_SN
+             , SORT_SEQ
+             , DEL_YN
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{otoInqrySn}
+             , #{atchFileSn}
+             , #{sortSeq}
+             , 'N'
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateInquiry">
+        /* 1:1 문의 수정 */
+        UPDATE OTO_INQRY
+        <set>
+            <if test="inqryTypeCd != null">INQRY_TYPE_CD = #{inqryTypeCd},</if>
+            <if test="inqryTtl != null">INQRY_TTL = #{inqryTtl},</if>
+            <if test="inqryCn != null">INQRY_CN = #{inqryCn},</if>
+            MDFCN_DT = NOW()
+        </set>
+         WHERE OTO_INQRY_SN = #{otoInqrySn}
+           AND INQRY_PRCS_STTS_CD = #{receivedCd}
+    </update>
+
+    <update id="updatePhotosDeleted">
+        /* 문의 첨부 사진 삭제 처리 */
+        UPDATE INQRY_ATCH_PHOTO
+           SET DEL_YN = 'Y'
+             , MDFCN_DT = NOW()
+         WHERE OTO_INQRY_SN = #{otoInqrySn}
+           AND DEL_YN = 'N'
+           AND ATCH_FILE_SN IN
+        <foreach collection="atchFileSns" item="atchFileSn" open="(" separator="," close=")">
+               #{atchFileSn}
+        </foreach>
+    </update>
+
+    <update id="updateAnswer">
+        /* 1:1 문의 답변 등록 */
+        UPDATE OTO_INQRY
+           SET PRCS_MBR_SN = #{prcsMbrSn}
+             , INQRY_PRCS_STTS_CD = #{answeredCd}
+             , ANS_CN = #{ansCn}
+             , ANS_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE OTO_INQRY_SN = #{otoInqrySn}
+           AND INQRY_PRCS_STTS_CD = #{receivedCd}
+    </update>
+</mapper>

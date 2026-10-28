@@ -1,0 +1,6 @@
+{
+  "name": "limit-guard",
+  "version": "0.1.0",
+  "description": "5시간 사용량 한도가 차기 전에 핸드오프 기록·wip 커밋으로 작업을 보존한다. 푸시는 사람이 승인한다",
+  "types": "./types/index.d.ts"
+}

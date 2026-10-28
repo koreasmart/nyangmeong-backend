@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- VS Code(redhat.java)와 STS가 함께 쓰는 Java 포맷 설정. 적지 않은 항목은 Eclipse 기본값을 따른다 -->
+<profiles version="23">
+<profile kind="CodeFormatterProfile" name="nyangmeong" version="23">
+<setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="space"/>
+<setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
+<setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
+<setting id="org.eclipse.jdt.core.formatter.lineSplit" value="120"/>
+</profile>
+</profiles>

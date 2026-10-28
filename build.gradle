@@ -1,0 +1,116 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.1.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.nyangmeong'
+version = '0.0.1-SNAPSHOT'
+description = 'Nyangmeong Care backend'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.1.0'
+	implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:4.1.1'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
+	// JWT 발급·검증(global/security/jwt). Spring Security 내장 NimbusJwtEncoder/Decoder, 버전은 Boot 관리
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	// SQL 로그(global/config/Log4jdbcConfig). 바인딩 값이 채워진 SQL과 결과 표를 찍는다. prod 프로필에서는 쓰지 않는다
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.1'
+	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// 시드 데이터 생성기(src/seed). 서버 jar·테스트와 분리하고, build가 컴파일만 해서 깨지면 알린다
+sourceSets {
+	seed {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+configurations {
+	seedImplementation.extendsFrom implementation
+	seedRuntimeOnly.extendsFrom runtimeOnly
+	seedCompileOnly.extendsFrom compileOnly
+}
+
+tasks.named('check') {
+	dependsOn 'seedClasses'
+}
+
+// ./gradlew seedData -Ptarget=shared|local [-Pscale=N] [-Pconfirm=<DB이름>] [-Preset]
+tasks.register('seedData', JavaExec) {
+	group = 'application'
+	description = '빈 DB에 시드 데이터를 넣는다(README "시드 데이터")'
+	classpath = sourceSets.seed.runtimeClasspath
+	mainClass = 'com.nyangmeong.seed.SeedDataApplication'
+	workingDir = projectDir
+	jvmArgs = ['-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8']
+	standardInput = System.in
+	args = ['data'] + ['target', 'scale', 'confirm', 'reset']
+			.findAll { project.hasProperty(it) }
+			.collect { "--${it}=${project.property(it)}" }
+}
+
+// ./gradlew seedClean -Ptarget=shared|local [-Pconfirm=<DB이름>]. 시드 대상·기록 테이블을 전부 비운다(팀원 데이터 포함)
+tasks.register('seedClean', JavaExec) {
+	group = 'application'
+	description = '시드 대상 테이블을 전부 비운다(README "시드 데이터")'
+	classpath = sourceSets.seed.runtimeClasspath
+	mainClass = 'com.nyangmeong.seed.SeedDataApplication'
+	workingDir = projectDir
+	jvmArgs = ['-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8']
+	standardInput = System.in
+	args = ['clean'] + ['target', 'confirm']
+			.findAll { project.hasProperty(it) }
+			.collect { "--${it}=${project.property(it)}" }
+}
+
+// ./gradlew seedFiles [-Ptarget=shared|local]. 시드 이미지 파일만 이 PC의 저장 폴더에 다시 만든다
+tasks.register('seedFiles', JavaExec) {
+	group = 'application'
+	description = '시드 데이터의 이미지 파일을 이 PC에 다시 만든다'
+	classpath = sourceSets.seed.runtimeClasspath
+	mainClass = 'com.nyangmeong.seed.SeedDataApplication'
+	workingDir = projectDir
+	jvmArgs = ['-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8']
+	args = ['files'] + (project.hasProperty('target') ? ["--target=${project.property('target')}"] : [])
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test).configureEach {
+    systemProperty 'file.encoding', 'UTF-8'
+    jvmArgs '-Dfile.encoding=UTF-8'
+}

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.expense.mapper.ReceiptMapper">
+
+    <resultMap id="receiptResultMap" type="com.nyangmeong.expense.domain.Receipt">
+        <id     column="RECPT_SN"         property="recptSn" />
+        <result column="MBR_SN"           property="mbrSn" />
+        <result column="ATCH_FILE_SN"     property="atchFileSn" />
+        <result column="OCR_PRCS_STTS_CD" property="ocrPrcsSttsCd" />
+        <result column="OCR_DMND_SRC_CD"  property="ocrDmndSrcCd" />
+        <result column="OCR_RSPNS_JSON"   property="ocrRspnsJson" />
+        <result column="STRG_DT"          property="strgDt" />
+        <result column="IDMPT_DMND_ID"    property="idmptDmndId" />
+        <result column="REG_DT"           property="regDt" />
+        <result column="MDFCN_DT"         property="mdfcnDt" />
+    </resultMap>
+
+    <select id="selectOwned" resultMap="receiptResultMap">
+        /* 영수증 단건 조회(본인 것만) */
+        SELECT RECPT_SN
+             , MBR_SN
+             , ATCH_FILE_SN
+             , OCR_PRCS_STTS_CD
+             , OCR_DMND_SRC_CD
+             , OCR_RSPNS_JSON
+             , STRG_DT
+             , IDMPT_DMND_ID
+             , REG_DT
+             , MDFCN_DT
+          FROM RECPT
+         WHERE RECPT_SN = #{recptSn}
+           AND MBR_SN = #{mbrSn}
+    </select>
+
+    <insert id="insert" parameterType="com.nyangmeong.expense.domain.Receipt"
+            useGeneratedKeys="true" keyProperty="recptSn" keyColumn="RECPT_SN">
+        /* 영수증 등록 */
+        INSERT INTO RECPT
+             ( MBR_SN
+             , ATCH_FILE_SN
+             , OCR_PRCS_STTS_CD
+             , OCR_DMND_SRC_CD
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{mbrSn}
+             , #{atchFileSn}
+             , #{ocrPrcsSttsCd}
+             , #{ocrDmndSrcCd}
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateStatus">
+        /* 영수증 처리 상태 변경(이전 상태 조건) */
+        UPDATE RECPT
+           SET OCR_PRCS_STTS_CD = #{aftrSttsCd}
+             , MDFCN_DT = NOW()
+         WHERE RECPT_SN = #{recptSn}
+           AND OCR_PRCS_STTS_CD IN
+            <foreach collection="bfrSttsCds" item="bfrSttsCd" open="(" separator="," close=")">
+                #{bfrSttsCd}
+            </foreach>
+    </update>
+
+    <update id="updateAnalyzed">
+        /* 영수증 분석 결과 저장과 상태 변경 */
+        UPDATE RECPT
+           SET OCR_PRCS_STTS_CD = #{aftrSttsCd}
+             , OCR_RSPNS_JSON = #{ocrRspnsJson}
+             , MDFCN_DT = NOW()
+         WHERE RECPT_SN = #{recptSn}
+           AND OCR_PRCS_STTS_CD = #{bfrSttsCd}
+    </update>
+
+    <select id="selectByIdmptDmndId" resultMap="receiptResultMap">
+        /* 멱등 요청 ID로 영수증 조회 */
+        SELECT RECPT_SN
+             , MBR_SN
+             , ATCH_FILE_SN
+             , OCR_PRCS_STTS_CD
+             , OCR_DMND_SRC_CD
+             , OCR_RSPNS_JSON
+             , STRG_DT
+             , IDMPT_DMND_ID
+             , REG_DT
+             , MDFCN_DT
+          FROM RECPT
+         WHERE IDMPT_DMND_ID = #{idmptDmndId}
+    </select>
+
+    <update id="updateSaved">
+        /* 영수증 저장 완료 처리(멱등 요청 ID·저장일시 기록) */
+        UPDATE RECPT
+           SET OCR_PRCS_STTS_CD = #{aftrSttsCd}
+             , IDMPT_DMND_ID = #{idmptDmndId}
+             , STRG_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE RECPT_SN = #{recptSn}
+           AND OCR_PRCS_STTS_CD IN
+            <foreach collection="bfrSttsCds" item="bfrSttsCd" open="(" separator="," close=")">
+                #{bfrSttsCd}
+            </foreach>
+    </update>
+
+    <insert id="insertStatusHistory" parameterType="com.nyangmeong.expense.domain.ReceiptStatusHistory"
+            useGeneratedKeys="true" keyProperty="recptSttsHstrySn" keyColumn="RECPT_STTS_HSTRY_SN">
+        /* 영수증 상태 변경 이력 등록 */
+        INSERT INTO RECPT_STTS_HSTRY
+             ( RECPT_SN
+             , MBR_SN
+             , BFR_STTS_CD
+             , AFTR_STTS_CD
+             , CHG_RSN
+             , REG_DT )
+        VALUES
+             ( #{recptSn}
+             , #{mbrSn}
+             , #{bfrSttsCd}
+             , #{aftrSttsCd}
+             , #{chgRsn}
+             , NOW() )
+    </insert>
+</mapper>

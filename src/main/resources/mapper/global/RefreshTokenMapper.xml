@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.global.security.session.RefreshTokenMapper">
+
+    <resultMap id="refreshTokenResultMap" type="com.nyangmeong.global.security.domain.RefreshToken">
+        <id     column="RFRSH_TKN_SN"   property="rfrshTknSn" />
+        <result column="MBR_SN"         property="mbrSn" />
+        <result column="RFRSH_TKN_HASH" property="rfrshTknHash" />
+        <result column="EXPRY_DT"       property="expryDt" />
+        <result column="DSCD_DT"        property="dscdDt" />
+        <result column="REG_DT"         property="regDt" />
+        <result column="MDFCN_DT"       property="mdfcnDt" />
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="token.rfrshTknSn" keyColumn="RFRSH_TKN_SN">
+        /* 리프레시 토큰 등록 */
+        INSERT INTO RFRSH_TKN
+             ( MBR_SN
+             , RFRSH_TKN_HASH
+             , EXPRY_DT
+             , REG_DT
+             , MDFCN_DT )
+        VALUES
+             ( #{token.mbrSn}
+             , #{token.rfrshTknHash}
+             , DATE_ADD(NOW(), INTERVAL #{expirySeconds} SECOND)
+             , NOW()
+             , NOW() )
+    </insert>
+
+    <update id="updateHash">
+        /* 리프레시 토큰 해시 갱신 */
+        UPDATE RFRSH_TKN
+           SET RFRSH_TKN_HASH = #{rfrshTknHash}
+             , MDFCN_DT = NOW()
+         WHERE RFRSH_TKN_SN = #{rfrshTknSn}
+    </update>
+
+    <select id="selectActiveByHash" parameterType="string" resultMap="refreshTokenResultMap">
+        /* 해시로 유효한 리프레시 토큰 조회(폐기·만료 제외) */
+        SELECT RFRSH_TKN_SN
+             , MBR_SN
+             , RFRSH_TKN_HASH
+             , EXPRY_DT
+             , DSCD_DT
+             , REG_DT
+             , MDFCN_DT
+          FROM RFRSH_TKN
+         WHERE RFRSH_TKN_HASH = #{rfrshTknHash}
+           AND DSCD_DT IS NULL
+           AND EXPRY_DT &gt; NOW()
+    </select>
+
+    <update id="updateDiscard" parameterType="long">
+        /* 리프레시 토큰 폐기 */
+        UPDATE RFRSH_TKN
+           SET DSCD_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE RFRSH_TKN_SN = #{rfrshTknSn}
+           AND DSCD_DT IS NULL
+    </update>
+
+    <update id="updateDiscardByHash" parameterType="string">
+        /* 해시로 리프레시 토큰 폐기 */
+        UPDATE RFRSH_TKN
+           SET DSCD_DT = NOW()
+             , MDFCN_DT = NOW()
+         WHERE RFRSH_TKN_HASH = #{rfrshTknHash}
+           AND DSCD_DT IS NULL
+    </update>
+</mapper>

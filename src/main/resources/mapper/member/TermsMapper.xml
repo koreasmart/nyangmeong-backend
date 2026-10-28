@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nyangmeong.member.mapper.TermsMapper">
+
+    <resultMap id="termsSummaryResultMap" type="com.nyangmeong.member.dto.TermsSummary">
+        <id     column="TRMS_SN"            property="trmsSn" />
+        <result column="TRMS_FIX_IDNTF_KEY" property="trmsFixIdntfKey" />
+        <result column="TRMS_VER_ID"        property="trmsVerId" />
+        <result column="TRMS_TTL"           property="trmsTtl" />
+        <result column="ESNTL_AGRE_YN"      property="esntlAgreYn" />
+        <result column="SORT_SEQ"           property="sortSeq" />
+    </resultMap>
+
+    <resultMap id="termsResultMap" type="com.nyangmeong.member.domain.Terms">
+        <id     column="TRMS_SN"            property="trmsSn" />
+        <result column="TRMS_FIX_IDNTF_KEY" property="trmsFixIdntfKey" />
+        <result column="TRMS_VER_ID"        property="trmsVerId" />
+        <result column="TRMS_TTL"           property="trmsTtl" />
+        <result column="TRMS_CN"            property="trmsCn" />
+        <result column="ESNTL_AGRE_YN"      property="esntlAgreYn" />
+    </resultMap>
+
+    <!-- TRMS 는 DEL_YN 없음, 사용 여부는 USE_YN -->
+    <select id="selectUsableList" resultMap="termsSummaryResultMap">
+        SELECT TRMS_SN
+             , TRMS_FIX_IDNTF_KEY
+             , TRMS_VER_ID
+             , TRMS_TTL
+             , (ESNTL_AGRE_YN = 'Y') AS ESNTL_AGRE_YN
+             , SORT_SEQ
+          FROM TRMS
+         WHERE USE_YN = 'Y'
+         ORDER BY SORT_SEQ, TRMS_SN
+    </select>
+
+    <select id="selectUsableBySn" parameterType="long" resultMap="termsResultMap">
+        SELECT TRMS_SN
+             , TRMS_FIX_IDNTF_KEY
+             , TRMS_VER_ID
+             , TRMS_TTL
+             , TRMS_CN
+             , ESNTL_AGRE_YN
+          FROM TRMS
+         WHERE TRMS_SN = #{trmsSn}
+           AND USE_YN = 'Y'
+    </select>
+
+    <insert id="insertAgreement">
+        INSERT INTO MBR_TRMS_AGRE (
+               MBR_SN
+             , TRMS_SN
+             , AGRE_DT
+             , AGRE_YN
+             , RGTR_ID
+             , MDFR_ID
+        ) VALUES (
+               #{mbrSn}
+             , #{trmsSn}
+             , NOW()
+             , #{agreYn}
+             , #{actorId}
+             , #{actorId}
+        )
+    </insert>
+</mapper>
